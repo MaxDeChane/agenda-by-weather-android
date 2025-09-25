@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+
+    <!-- Large smoke bubble -->
+    <path
+        android:fillColor="#e3e3e3"
+        android:pathData="M240,120a240,240 0 1,0 480,0a240,240 0 1,0 -480,0" />
+
+    <!-- Internal definition curve in large bubble -->
+    <path
+        android:fillAlpha="0"
+        android:strokeColor="#b0b0b0"
+        android:strokeWidth="12"
+        android:strokeLineCap="round"
+        android:pathData="M360,90q100,-80 240,60" />
+
+    <!-- Medium smoke bubble -->
+    <path
+        android:fillColor="#e3e3e3"
+        android:pathData="M330,420a150,150 0 1,0 300,0a150,150 0 1,0 -300,0" />
+
+    <!-- Internal definition line -->
+    <path
+        android:fillAlpha="0"
+        android:strokeColor="#b0b0b0"
+        android:strokeWidth="10"
+        android:strokeLineCap="round"
+        android:pathData="M400,400q50,-40 120,30" />
+
+    <!-- Small smoke bubble -->
+    <path
+        android:fillColor="#e3e3e3"
+        android:pathData="M420,720a90,90 0 1,0 120,0a90,90 0 1,0 -120,0" />
+
+</vector>

@@ -1,0 +1,84 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Local configuration
+local.properties
+
+# Log files
+*.log
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# User-specific / cache
+captures/
+.externalNativeBuild/
+.cxx/
+.gradle-cache/
+
+# Keystore (keep secrets out of VCS)
+*.jks
+*.keystore
+
+# Google Services config (should live in CI/CD secrets, not Git)
+google-services.json
+GoogleService-Info.plist
+
+# NDK
+obj/
+*.so
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Kotlin / Java
+*.class
+*.jar
+*.war
+*.ear
+
+# APKs / Bundles
+*.apk
+*.ap_
+*.aab
+
+# Proguard
+proguard/
+
+# Lint
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# Temporary files
+*.tmp
+*.temp
+*.orig
+
+# === Modern Android Additions ===
+
+# Jetpack Compose
+# Preview caches and build intermediates
+.compose-cache/
+**/build/generated/
+**/build/intermediates/
+
+# KSP (Kotlin Symbol Processing)
+.ksp/
+**/build/ksp/
+
+# kapt (Kotlin Annotation Processing)
+**/build/tmp/kapt3/
+**/build/generated/source/kapt/
+**/build/generated/source/kaptKotlin/
+
+# Room schema exports (if generated)
+schemas/
