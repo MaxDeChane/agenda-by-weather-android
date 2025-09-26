@@ -59,13 +59,13 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
     val weatherFilterGroups = _weatherFilterGroups.asStateFlow()
 
     // Holds the current filter group being created.
-    private val _inCreationFilterGroup = MutableStateFlow(WeatherFilterGroup(""))
+    private val _inCreationFilterGroup = MutableStateFlow(WeatherFilterGroup())
     val inCreationFilterGroup = _inCreationFilterGroup.asStateFlow()
 
-    private val _inEditFilterGroupHolders = MutableStateFlow<Map<String, WeatherFilterGroupEditHolder>>(mapOf())
+    private val _inEditFilterGroupHolders = MutableStateFlow<Map<Int, WeatherFilterGroupEditHolder>>(mapOf())
     val inEditFilterGroupHolders = _inEditFilterGroupHolders.asStateFlow()
 
-    private val _selectedWeatherFilterGroups = MutableStateFlow<Set<String>>(setOf())
+    private val _selectedWeatherFilterGroups = MutableStateFlow<Set<Int>>(setOf())
     val selectedWeatherFilterGroups = _selectedWeatherFilterGroups.asStateFlow()
 
     init {
@@ -119,95 +119,87 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
         }
     }
 
-    fun addRemoveSelectedWeatherFilterGroup(filterGroupName: String) {
+    fun addRemoveSelectedWeatherFilterGroup(filterGroupId: Int) {
         val selectFilterGroupsToUpdate = selectedWeatherFilterGroups.value.toMutableSet()
-        if(selectFilterGroupsToUpdate.remove(filterGroupName)) {
+        if(selectFilterGroupsToUpdate.remove(filterGroupId)) {
             _selectedWeatherFilterGroups.value = selectFilterGroupsToUpdate
         } else {
-            selectFilterGroupsToUpdate.add(filterGroupName)
+            selectFilterGroupsToUpdate.add(filterGroupId)
             _selectedWeatherFilterGroups.value = selectFilterGroupsToUpdate
         }
     }
 
     // The saving is done by taking the filter in creation and moving it to the
-    fun saveNewWeatherFilterGroup(filterGroupName: String) {
-        val weatherFilterGroupsCopy = weatherFilterGroups.value.copy()
-
-        val updatedFilterGroup = inCreationFilterGroup.value
-        updatedFilterGroup.name = filterGroupName
-
-        val copyOfWeatherFilterGroups = weatherFilterGroups.value.copy()
-
-        copyOfWeatherFilterGroups.filterGroups[filterGroupName] = updatedFilterGroup
-
-        _inCreationFilterGroup.value = WeatherFilterGroup("")
-        _weatherFilterGroups.value = weatherFilterGroupsCopy
+    // collection of all weather filter groups. Returns the Id of the new weather
+    // filter group.
+    fun saveNewWeatherFilterGroup(filterGroupName: String): Int {
+        val updateWeatherFilterGroups = weatherFilterGroups.value.saveNewWeatherFilterGroup(filterGroupName, inCreationFilterGroup.value)
+        _weatherFilterGroups.value = updateWeatherFilterGroups
+        _inCreationFilterGroup.value = WeatherFilterGroup()
 
         viewModelScope.launch {
-            weatherFilterGroupsDao.saveWeatherFilterGroups(context, weatherFilterGroupsCopy)
+            weatherFilterGroupsDao.saveWeatherFilterGroups(context, updateWeatherFilterGroups)
         }
+
+        return updateWeatherFilterGroups.filterGroups.values.first { it.name == filterGroupName }.id
     }
 
     // Call this before editing. It will move things into the right properties
     // for editing.
-    fun setupWeatherFilterGroupForEditing(originalFilterGroupName: String) {
-        if(!inEditFilterGroupHolders.value.contains(originalFilterGroupName)) {
-            val weatherFilterGroupToEdit = weatherFilterGroups.value.filterGroups[originalFilterGroupName]
+    fun setupWeatherFilterGroupForEditing(originalFilterGroupId: Int) {
+        if(!inEditFilterGroupHolders.value.contains(originalFilterGroupId)) {
+            val weatherFilterGroupToEdit = weatherFilterGroups.value.filterGroups[originalFilterGroupId]
             val inEditFilterGroupsCopy = inEditFilterGroupHolders.value.toMutableMap()
-            inEditFilterGroupsCopy[originalFilterGroupName] =
+            inEditFilterGroupsCopy[originalFilterGroupId] =
                 WeatherFilterGroupEditHolder(weatherFilterGroupToEdit!!.copy(), weatherFilterGroupToEdit)
             _inEditFilterGroupHolders.value = inEditFilterGroupsCopy.toMap()
         }
     }
 
-    fun removeWeatherFilterGroupFromEditing(originalFilterGroupName: String) {
+    fun removeWeatherFilterGroupFromEditing(filterGroupId: Int) {
         val inEditFilterGroupsCopy = inEditFilterGroupHolders.value.toMutableMap()
-        inEditFilterGroupsCopy.remove(originalFilterGroupName)
+        inEditFilterGroupsCopy.remove(filterGroupId)
         _inEditFilterGroupHolders.value = inEditFilterGroupsCopy
     }
 
-    fun updateWeatherFilterGroup(currentFilterGroupName: String, originalFilterGroupName: String) {
-        val inEditFilterGroupHolderCopy = inEditFilterGroupHolders.value.toMutableMap()
-        val updatedFilterGroup = inEditFilterGroupHolderCopy.remove(originalFilterGroupName)
-
-        if(updatedFilterGroup == null) {
-            Log.e(LOG_TAG, "Updated filter group not found by name $originalFilterGroupName " +
+    fun updateWeatherFilterGroup(filterGroupId: Int, filterGroupName: String) {
+        if(!inEditFilterGroupHolders.value.containsKey(filterGroupId)) {
+            Log.e(LOG_TAG, "Updated filter group not found by id $filterGroupId " +
                     "This should not happen and needs to be investigated.")
             return
         }
 
-        updatedFilterGroup.weatherFilterGroupToEdit.name = currentFilterGroupName
+        val inEditFilterGroupHolderCopy = inEditFilterGroupHolders.value.toMutableMap()
+        val updatedFilterGroup = inEditFilterGroupHolderCopy.remove(filterGroupId)!!.weatherFilterGroupToEdit
 
-        _weatherFilterGroups.value.filterGroups.remove(originalFilterGroupName)
-        _weatherFilterGroups.value.filterGroups[currentFilterGroupName] = updatedFilterGroup.weatherFilterGroupToEdit
+        val updatedFilterGroups = weatherFilterGroups.value.updateWeatherFilterGroup(filterGroupId, filterGroupName, updatedFilterGroup)
+
+        _weatherFilterGroups.value = updatedFilterGroups
         _inEditFilterGroupHolders.value = inEditFilterGroupHolderCopy
 
         viewModelScope.launch {
-            weatherFilterGroupsDao.saveWeatherFilterGroups(context, _weatherFilterGroups.value)
+            weatherFilterGroupsDao.saveWeatherFilterGroups(context, updatedFilterGroups)
         }
     }
 
-    fun deleteWeatherFilterGroup(filterGroupName: String) {
-        val weatherFilterGroupsCopy = weatherFilterGroups.value.copy(filterGroups =
-            weatherFilterGroups.value.filterGroups.toMutableMap())
-        if(weatherFilterGroupsCopy.deleteWeatherFilterGroup(filterGroupName)) {
-            val copyOfSelectedWeatherFilterGroupNames = selectedWeatherFilterGroups.value.toMutableSet()
-            copyOfSelectedWeatherFilterGroupNames.remove(filterGroupName)
-            _selectedWeatherFilterGroups.value = copyOfSelectedWeatherFilterGroupNames
-            _weatherFilterGroups.value = weatherFilterGroupsCopy
+    fun deleteWeatherFilterGroup(filterGroupId: Int) {
+        val copyOfSelectedWeatherFilterGroupNames = selectedWeatherFilterGroups.value.toMutableSet()
+        copyOfSelectedWeatherFilterGroupNames.remove(filterGroupId)
+        _selectedWeatherFilterGroups.value = copyOfSelectedWeatherFilterGroupNames
+        val updatedWeatherFilterGroups = weatherFilterGroups.value.deleteWeatherFilterGroup(filterGroupId)
+        _weatherFilterGroups.value = updatedWeatherFilterGroups
 
-            viewModelScope.launch {
-                weatherFilterGroupsDao.saveWeatherFilterGroups(context, weatherFilterGroupsCopy)
-            }
+        viewModelScope.launch {
+            weatherFilterGroupsDao.saveWeatherFilterGroups(context, updatedWeatherFilterGroups)
         }
     }
 
-    fun setWeatherFilter(filterClassName: String, weatherFilter: WeatherFilter, originalFilterGroupName: String) {
-        if(originalFilterGroupName.isNotBlank()) {
+    fun setWeatherFilter(filterClassName: String, weatherFilter: WeatherFilter, filterGroupId: Int) {
+        if(filterGroupId != -1) {
             val inEditFilterGroupHoldersCopy = inEditFilterGroupHolders.value.toMutableMap()
-            val filterGroupHolderToUpdate = inEditFilterGroupHoldersCopy[originalFilterGroupName]
+            val filterGroupHolderToUpdate = inEditFilterGroupHoldersCopy[filterGroupId]
             val filterGroupUpdated = filterGroupHolderToUpdate!!.weatherFilterGroupToEdit.addWeatherFilter(filterClassName, weatherFilter)
-            inEditFilterGroupHoldersCopy[originalFilterGroupName] = filterGroupHolderToUpdate.copy(weatherFilterGroupToEdit = filterGroupUpdated)
+            inEditFilterGroupHoldersCopy[filterGroupId] = filterGroupHolderToUpdate.copy(weatherFilterGroupToEdit = filterGroupUpdated)
             _inEditFilterGroupHolders.value = inEditFilterGroupHoldersCopy
         } else {
             _inCreationFilterGroup.value =
@@ -215,12 +207,12 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
         }
     }
 
-    fun removeWeatherFilter(filterClassName: String, originalFilterGroupName: String) {
-        if(originalFilterGroupName.isNotBlank()) {
+    fun removeWeatherFilter(filterClassName: String, filterGroupId: Int) {
+        if(filterGroupId != -1) {
             val inEditFilterGroupHoldersCopy = inEditFilterGroupHolders.value.toMutableMap()
-            val filterGroupHolderToUpdate = inEditFilterGroupHoldersCopy[originalFilterGroupName]
+            val filterGroupHolderToUpdate = inEditFilterGroupHoldersCopy[filterGroupId]
             val filterGroupUpdated = filterGroupHolderToUpdate!!.weatherFilterGroupToEdit.removeWeatherFilter(filterClassName)
-            inEditFilterGroupHoldersCopy[originalFilterGroupName] = filterGroupHolderToUpdate.copy(weatherFilterGroupToEdit = filterGroupUpdated)
+            inEditFilterGroupHoldersCopy[filterGroupId] = filterGroupHolderToUpdate.copy(weatherFilterGroupToEdit = filterGroupUpdated)
             _inEditFilterGroupHolders.value = inEditFilterGroupHoldersCopy
         } else {
             _inCreationFilterGroup.value =
@@ -228,15 +220,15 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
         }
     }
 
-    fun clearInCreationWeatherFilterGroup(originalFilterGroupName: String) {
-        if(originalFilterGroupName.isNotBlank()) {
+    fun clearInCreationOrEditWeatherFilterGroup(filterGroupId: Int) {
+        if(filterGroupId != -1) {
             val inEditFilterGroupHoldersCopy = inEditFilterGroupHolders.value.toMutableMap()
-            val filterGroupHolderToUpdate = inEditFilterGroupHoldersCopy[originalFilterGroupName]
-            inEditFilterGroupHoldersCopy[originalFilterGroupName] = filterGroupHolderToUpdate!!
-                .copy(weatherFilterGroupToEdit = WeatherFilterGroup(filterGroupHolderToUpdate.weatherFilterGroupToEditBackup.name))
+            val filterGroupHolderToUpdate = inEditFilterGroupHoldersCopy[filterGroupId]
+            inEditFilterGroupHoldersCopy[filterGroupId] = filterGroupHolderToUpdate!!
+                .copy(weatherFilterGroupToEdit = WeatherFilterGroup(filterGroupId))
             _inEditFilterGroupHolders.value = inEditFilterGroupHoldersCopy
         } else {
-            _inCreationFilterGroup.value = WeatherFilterGroup("")
+            _inCreationFilterGroup.value = WeatherFilterGroup()
         }
     }
 

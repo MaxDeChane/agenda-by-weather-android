@@ -1,9 +1,11 @@
 package com.example.weatherbyagendaandroid.presentation.domain
 
 import com.squareup.moshi.JsonClass
+import kotlin.random.Random
 
 @JsonClass(generateAdapter = true)
-data class WeatherFilterGroup(var name: String, val filtersByName: MutableMap<String, WeatherFilter> = mutableMapOf()
+data class WeatherFilterGroup(val id: Int = -1, var name: String = "",
+                              val filtersByName: MutableMap<String, WeatherFilter> = mutableMapOf()
 ) {
 
     private companion object {

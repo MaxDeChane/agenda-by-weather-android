@@ -1,33 +1,54 @@
 package com.example.weatherbyagendaandroid.presentation.domain
 
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.common.util.CollectionUtils
 import com.squareup.moshi.JsonClass
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 @JsonClass(generateAdapter = true)
-data class WeatherFilterGroups(val filterGroups: MutableMap<String, WeatherFilterGroup> = mutableMapOf()) {
+data class WeatherFilterGroups(val filterGroups: Map<Int, WeatherFilterGroup> = mapOf()) {
 
     private companion object {
         const val LOG_TAG = "WeatherFilterGroups"
     }
 
-    fun deleteWeatherFilterGroup(filterGroupName: String): Boolean {
-        if(filterGroupName.isNotBlank()) {
-            if(filterGroups.remove(filterGroupName) != null) {
+    fun saveNewWeatherFilterGroup(filterGroupName: String, newFilterGroup: WeatherFilterGroup): WeatherFilterGroups {
 
-                return true
-            } else {
-                Log.e(LOG_TAG, "$filterGroupName does not exist. This should not happen")
-            }
-        } else {
-            Log.e(LOG_TAG, "No filter group Name passed in. This should not happen")
+        val mutableFilterGroups = filterGroups.toMutableMap()
+
+        var filterGroupId = Random.nextInt(0, 10000)
+
+        while(mutableFilterGroups.contains(filterGroupId)) {
+            filterGroupId = Random.nextInt(0, 10000)
+        }
+        mutableFilterGroups[filterGroupId] = newFilterGroup.copy(id = filterGroupId, name = filterGroupName)
+
+        return this.copy(filterGroups = mutableFilterGroups.toMap())
+    }
+
+    fun updateWeatherFilterGroup(filterGroupId: Int, filterGroupName: String, updatedFilterGroup: WeatherFilterGroup): WeatherFilterGroups {
+        val mutableFilterGroups = filterGroups.toMutableMap()
+
+        mutableFilterGroups[filterGroupId] = updatedFilterGroup.copy(name = filterGroupName)
+
+        return this.copy(filterGroups = mutableFilterGroups.toMap())
+    }
+
+    fun deleteWeatherFilterGroup(filterGroupId: Int): WeatherFilterGroups {
+        if(filterGroups.containsKey(filterGroupId)) {
+            val mutableFilterGroups = filterGroups.toMutableMap()
+            mutableFilterGroups.remove(filterGroupId)
+            return this.copy(filterGroups = mutableFilterGroups.toMap())
         }
 
-        return false
+        Log.e(LOG_TAG, "$filterGroupId does not exist. This should not happen")
+        return this
     }
 
     fun runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlock: WeatherPeriodDisplayBlock,
-                                             selectedWeatherFilterGroupNames: Set<String>,
+                                             selectedWeatherFilterGroupNames: Set<Int>,
                                              inProgressFilterGroup: WeatherFilterGroup) {
         val allFilterGroups = selectedWeatherFilterGroupNames.map { filterGroups[it] }.toMutableList()
 

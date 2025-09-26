@@ -16,25 +16,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
 @Composable
-fun EditWeatherFilterGroupView(filterGroupName: String, closeEditingView: () -> Unit,
+fun EditWeatherFilterGroupView(filterGroupId: Int, closeEditingView: () -> Unit,
                                weatherViewModel: WeatherViewModel = viewModel()
 ) {
-    var currentFilterGroupName by remember { mutableStateOf(filterGroupName) }
     val inEditWeatherFilterGroup by weatherViewModel.inEditFilterGroupHolders.collectAsStateWithLifecycle()
 
-    OutlinedTextField(
-        value = currentFilterGroupName,
-        onValueChange = { currentFilterGroupName = it },
-        label = { Text("Filter Group Name", color = MaterialTheme.colorScheme.onSecondary) },
-        modifier = Modifier.fillMaxWidth()
-    )
-
-    WeatherFilterGroupInputView(inEditWeatherFilterGroup[filterGroupName]!!.weatherFilterGroupToEdit,
+    WeatherFilterGroupInputView(inEditWeatherFilterGroup[filterGroupId]!!.weatherFilterGroupToEdit,
         true,
         {
             closeEditingView()
-            weatherViewModel.removeWeatherFilterGroupFromEditing(filterGroupName)
+            weatherViewModel.removeWeatherFilterGroupFromEditing(filterGroupId)
         }, {
-            weatherViewModel.updateWeatherFilterGroup(currentFilterGroupName, filterGroupName)
+            weatherViewModel.updateWeatherFilterGroup(filterGroupId, it)
         })
 }

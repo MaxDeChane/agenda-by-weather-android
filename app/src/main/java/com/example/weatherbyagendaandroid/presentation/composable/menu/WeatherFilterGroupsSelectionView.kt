@@ -36,7 +36,7 @@ fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewMode
 
     if(weatherFilterGroups.filterGroups.isNotEmpty()) {
         Column {
-            weatherFilterGroups.filterGroups.keys.forEach { option ->
+            weatherFilterGroups.filterGroups.forEach { filterGroupEntry ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -46,17 +46,17 @@ fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewMode
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { weatherViewModel.addRemoveSelectedWeatherFilterGroup(option) }
+                            .clickable { weatherViewModel.addRemoveSelectedWeatherFilterGroup(filterGroupEntry.key) }
                     ) {
                         RadioButton(
-                            selected = selectedWeatherFilterGroups.contains(option),
-                            onClick = { weatherViewModel.addRemoveSelectedWeatherFilterGroup(option) },
+                            selected = selectedWeatherFilterGroups.contains(filterGroupEntry.key),
+                            onClick = { weatherViewModel.addRemoveSelectedWeatherFilterGroup(filterGroupEntry.key) },
                             colors = RadioButtonDefaults.colors(
                                 selectedColor = MaterialTheme.colorScheme.primary
                             )
                         )
                         Text(
-                            text = option,
+                            text = filterGroupEntry.value.name,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -71,7 +71,7 @@ fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewMode
                                 text = "Edit",
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.clickable {
-                                    weatherViewModel.setupWeatherFilterGroupForEditing(option)
+                                    weatherViewModel.setupWeatherFilterGroupForEditing(filterGroupEntry.key)
                                     isEditing = !isEditing
                                 }
                             )
@@ -79,13 +79,13 @@ fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewMode
                                 text = "Delete",
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(horizontal = 8.dp).clickable {
-                                    weatherViewModel.deleteWeatherFilterGroup(option)
+                                    weatherViewModel.deleteWeatherFilterGroup(filterGroupEntry.key)
                                 }
                             )
                         }
 
-                        if (isEditing && inEditWeatherFilterGroups.contains(option)) {
-                            EditWeatherFilterGroupView(option, { isEditing = false })
+                        if (isEditing && inEditWeatherFilterGroups.containsKey(filterGroupEntry.key)) {
+                            EditWeatherFilterGroupView(filterGroupEntry.key, { isEditing = false })
                         }
                     }
                 }
