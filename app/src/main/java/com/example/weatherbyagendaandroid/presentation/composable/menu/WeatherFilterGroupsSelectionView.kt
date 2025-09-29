@@ -95,7 +95,7 @@ fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewMode
         }
     }  else {
         Box(Modifier.background(MaterialTheme.colorScheme.secondary)) {
-            Text("No weather filter groups available. Please create one using the Tab below.",
+            Text("No weather filter groups available. Please create one using the Weather Filters tab.",
                 Modifier.padding(8.dp))
         }
     }
