@@ -78,10 +78,10 @@ class LocationViewModel @Inject constructor(
         }
     }
 
-    fun selectLocation(locationName: String) {
+    fun selectLocation(locationId: Int) {
         if(selectedSavedLocation.value == null ||
-            selectedSavedLocation.value!!.name != savedLocations.value.retrieveLocation(locationName).name) {
-            _selectedSavedLocation.value = savedLocations.value.retrieveLocation(locationName)
+            selectedSavedLocation.value!!.name != savedLocations.value.retrieveLocation(locationId).name) {
+            _selectedSavedLocation.value = savedLocations.value.retrieveLocation(locationId)
         } else {
             _selectedSavedLocation.value = null
         }
@@ -89,7 +89,7 @@ class LocationViewModel @Inject constructor(
 
     fun addSavedLocation(location: SavedLocation) {
         _selectedSavedLocation.value = location
-        _savedLocations.value = savedLocations.value.addLocation(location.name, location)
+        _savedLocations.value = savedLocations.value.addLocation(location)
         _cityOptions.value = listOf()
 
         viewModelScope.launch {
@@ -97,9 +97,9 @@ class LocationViewModel @Inject constructor(
         }
     }
 
-    fun deleteSavedLocation(locationName: String) {
-        _savedLocations.value = savedLocations.value.removeLocation(locationName)
-        if(_selectedSavedLocation.value?.name == locationName) {
+    fun deleteSavedLocation(locationId: Int) {
+        _savedLocations.value = savedLocations.value.deleteLocation(locationId)
+        if(_selectedSavedLocation.value?.id == locationId) {
             _selectedSavedLocation.value = null
         }
 
@@ -108,7 +108,7 @@ class LocationViewModel @Inject constructor(
         }
     }
 
-    fun updateLocationName(oldLocationName: String, newLocationName: String) {
-        _savedLocations.value = savedLocations.value.updateLocationName(oldLocationName, newLocationName)
+    fun updateLocationName(locationId: Int, newLocationName: String) {
+        _savedLocations.value = savedLocations.value.updateLocationName(locationId, newLocationName)
     }
 }

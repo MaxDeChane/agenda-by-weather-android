@@ -35,7 +35,7 @@ fun AddAgendaItemAlertView(dismiss: () -> Unit, locationViewModel: LocationViewM
     var startDateTime by remember { mutableStateOf(LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0)) }
     var endDateTime by remember { mutableStateOf(startDateTime.plusHours(1)) }
     var locationExpanded by remember { mutableStateOf(false) }
-    var selectedLocationName by remember { mutableStateOf("") }
+    var selectedLocationId by remember { mutableStateOf(-1) }
     var weatherFilterGroupsExpanded by remember { mutableStateOf(false) }
     var selectedFilterGroupName by remember { mutableStateOf("") }
 
@@ -74,7 +74,7 @@ fun AddAgendaItemAlertView(dismiss: () -> Unit, locationViewModel: LocationViewM
                 ExpandableView("Location", locationExpanded) { locationExpanded = !locationExpanded }
 
                 if(locationExpanded) {
-                    SavedLocationSelectionView(selectedLocationName, savedLocations,false, { selectedLocationName = it })
+                    SavedLocationSelectionView(selectedLocationId, savedLocations,false, { selectedLocationId = it })
                 }
 
                 ExpandableView("Weather Filter Groups", weatherFilterGroupsExpanded) { weatherFilterGroupsExpanded = !weatherFilterGroupsExpanded }

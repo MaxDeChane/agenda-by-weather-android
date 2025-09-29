@@ -30,13 +30,13 @@ fun LocationView(locationViewModel: LocationViewModel = viewModel()
     val currentSavedLocation by locationViewModel.selectedSavedLocation.collectAsStateWithLifecycle()
     val savedLocations by locationViewModel.savedLocations.collectAsStateWithLifecycle()
 
-    val currentSavedLocationName = if(currentSavedLocation != null) currentSavedLocation!!.name else ""
+    val currentSavedLocationId = if(currentSavedLocation != null) currentSavedLocation!!.id else -1
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondary)
     ) {
-        SavedLocationSelectionView(currentSavedLocationName, savedLocations, true, { locationViewModel.selectLocation(it) })
+        SavedLocationSelectionView(currentSavedLocationId, savedLocations, true, { locationViewModel.selectLocation(it) })
         Row(modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
                 onClick = { showAddLocationAlertView = true },

@@ -23,13 +23,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.weatherbyagendaandroid.presentation.domain.SavedLocation
 import com.example.weatherbyagendaandroid.presentation.domain.SavedLocations
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
 
 @Composable
-fun SavedLocationSelectionView(currentSavedLocationName: String, savedLocations: SavedLocations,
-                               isEditable: Boolean = true, selectLocation: (locationName: String) -> Unit,
+fun SavedLocationSelectionView(currentSavedLocationId: Int, savedLocations: SavedLocations,
+                               isEditable: Boolean = true, selectLocation: (locationId: Int) -> Unit,
                                locationViewModel: LocationViewModel = viewModel()) {
 
     var newLocationName by remember { mutableStateOf("") }
@@ -37,7 +36,7 @@ fun SavedLocationSelectionView(currentSavedLocationName: String, savedLocations:
 
     if(savedLocations.hasSaveLocations()) {
         Column{
-            savedLocations.locationsByName.keys.forEach { locationName ->
+            savedLocations.locations.forEach { (locationId, location) ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -47,22 +46,22 @@ fun SavedLocationSelectionView(currentSavedLocationName: String, savedLocations:
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { selectLocation(locationName) }
+                            .clickable { selectLocation(locationId) }
                     ) {
                         RadioButton(
-                            selected = currentSavedLocationName == locationName,
-                            onClick = { selectLocation(locationName) },
+                            selected = currentSavedLocationId == locationId,
+                            onClick = { selectLocation(locationId) },
                             colors = RadioButtonDefaults.colors(
                                 selectedColor = MaterialTheme.colorScheme.primary
                             )
                         )
                         Text(
-                            text = locationName,
+                            text = location.name,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
                     if(isEditable) {
-                        if(locationName == locationUnderEditName) {
+                        if(location.name == locationUnderEditName) {
                             Column {
                                 OutlinedTextField(
                                     value = newLocationName,
@@ -96,7 +95,7 @@ fun SavedLocationSelectionView(currentSavedLocationName: String, savedLocations:
                                         text = "Save",
                                         style = MaterialTheme.typography.bodyLarge,
                                         modifier = Modifier.padding(horizontal = 8.dp).clickable {
-                                            locationViewModel.updateLocationName(locationName, newLocationName)
+                                            locationViewModel.updateLocationName(locationId, newLocationName)
                                         }
                                     )
                                 }
@@ -113,14 +112,14 @@ fun SavedLocationSelectionView(currentSavedLocationName: String, savedLocations:
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.clickable {
                                         newLocationName = ""
-                                        locationUnderEditName = locationName
+                                        locationUnderEditName = location.name
                                     }
                                 )
                                 Text(
                                     text = "Delete",
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.padding(horizontal = 8.dp).clickable {
-                                        locationViewModel.deleteSavedLocation(locationName)
+                                        locationViewModel.deleteSavedLocation(locationId)
                                     }
                                 )
                             }

@@ -105,9 +105,9 @@ fun UpdateLocationAlertView(dismiss: () -> Unit,
                 onClick = {
                     Log.i(LOG_TAG, "Selected city is $selectedCity")
                     locationViewModel.addSavedLocation(SavedLocation(
-                        "${selectedCity!!.name}, ${selectedCity!!.state}",
-                        "${selectedCity!!.name}, ${selectedCity!!.state}",
-                        selectedCity!!.latitude!!, selectedCity!!.longitude!!
+                        name = "${selectedCity!!.name}, ${selectedCity!!.state}",
+                        cityState = "${selectedCity!!.name}, ${selectedCity!!.state}",
+                        latitude = selectedCity!!.latitude!!, longitude = selectedCity!!.longitude!!
                     ))
                     dismiss()
                 }

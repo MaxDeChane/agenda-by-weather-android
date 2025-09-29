@@ -1,58 +1,56 @@
 package com.example.weatherbyagendaandroid.presentation.domain
 
 import android.util.Log
+import kotlin.random.Random
 
-data class SavedLocations(val locationsByName: Map<String, SavedLocation> = emptyMap()) {
+data class SavedLocations(val locations: Map<Int, SavedLocation> = emptyMap()) {
 
     private companion object {
         val LOG_TAG = "SavedLocations"
     }
 
-    fun hasSaveLocations() = locationsByName.isNotEmpty()
+    fun hasSaveLocations() = locations.isNotEmpty()
 
-    fun addLocation(locationName: String, location: SavedLocation): SavedLocations {
-        val locationsByNameCopy = locationsByName.toMutableMap()
-        locationsByNameCopy[locationName] = location
-        return this.copy(locationsByName = locationsByNameCopy)
-    }
+    fun addLocation(location: SavedLocation): SavedLocations {
+        val mutableLocations = locations.toMutableMap()
 
-    fun removeLocation(locationName: String): SavedLocations {
-        if(locationsByName.contains(locationName)) {
-            val locationsByNameCopy = locationsByName.toMutableMap()
-            locationsByNameCopy.remove(locationName)
-            return this.copy(locationsByName = locationsByNameCopy)
+        var locationId = Random.nextInt(0, 10000)
+
+        while(mutableLocations.containsKey(locationId)) {
+            locationId = Random.nextInt(0, 10000)
         }
 
-        Log.e(LOG_TAG, "Unable to find location with name $locationName")
+        mutableLocations[locationId] = location.copy(id = locationId)
+        return this.copy(locations = mutableLocations)
+    }
+
+    fun updateLocationName(locationId: Int, newLocationName:String): SavedLocations {
+        if(locations.containsKey(locationId)) {
+            val locationsByNameCopy = locations.toMutableMap()
+            val locationToUpdateName = locationsByNameCopy[locationId]
+            locationsByNameCopy[locationId] = locationToUpdateName!!.copy(name = newLocationName)
+
+            return this.copy(locations = locationsByNameCopy)
+        }
+
+        Log.e(LOG_TAG, "Unable to find location with name id $locationId")
 
         return this
     }
 
-    fun updateLocationName(oldLocationName: String, newLocationName:String): SavedLocations {
-        if(locationsByName.contains(oldLocationName)) {
-            val locationsByNameCopy = locationsByName.toMutableMap()
-            val locationCopy = locationsByNameCopy[oldLocationName]
-            locationsByNameCopy[oldLocationName] = locationCopy!!.copy(name = newLocationName)
-
-            return this.copy(locationsByName = locationsByNameCopy)
+    fun deleteLocation(locationId: Int): SavedLocations {
+        if(locations.containsKey(locationId)) {
+            val locationsByNameCopy = locations.toMutableMap()
+            locationsByNameCopy.remove(locationId)
+            return this.copy(locations = locationsByNameCopy)
         }
 
-        Log.e(LOG_TAG, "Unable to find location with name $oldLocationName")
+        Log.e(LOG_TAG, "Unable to find location with name $locationId")
 
         return this
     }
 
-    fun retrieveLocation(locationName: String): SavedLocation {
-        return locationsByName[locationName]!!
-    }
-
-    fun retrieveCityStateOfLocation(locationName: String): String? {
-        val location = locationsByName[locationName]
-
-        if(location != null) {
-            return location.cityState
-        }
-
-        return null
+    fun retrieveLocation(locationId: Int): SavedLocation {
+        return locations[locationId]!!
     }
 }
