@@ -22,7 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LocationViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val locationHelper: LocationHelper,
+    locationHelper: LocationHelper,
     private val cityDatabase: CityDatabase,
     private val savedLocationsDao: SavedLocationsDao
 ): ViewModel() {

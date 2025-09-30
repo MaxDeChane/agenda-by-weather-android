@@ -31,32 +31,21 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.R
-import com.example.weatherbyagendaandroid.dao.domain.WeatherPeriod
-import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
 @Composable
 fun WeatherGeneralHourlyPeriodsView(
     innerPadding: PaddingValues,
-    weatherViewModel: WeatherViewModel = viewModel(),
-    locationViewModel: LocationViewModel = viewModel()
+    weatherViewModel: WeatherViewModel = viewModel()
 ) {
     val LOG_TAG = remember { "WeatherGeneralHourlyPeriodsView" }
 
-    val gpsLocation by locationViewModel.gpsLocation.collectAsStateWithLifecycle()
-    val currentSelectedLocation by locationViewModel.selectedSavedLocation.collectAsStateWithLifecycle()
     val weatherPeriodDisplayBlocks by weatherViewModel.weatherPeriodDisplayBlocks.collectAsStateWithLifecycle()
     val weatherFilterGroups by weatherViewModel.weatherFilterGroups.collectAsStateWithLifecycle()
-    val selectedWeatherFilterGroupNames by weatherViewModel.selectedWeatherFilterGroups.collectAsStateWithLifecycle()
+    val selectedWeatherFilterGroupIds by weatherViewModel.selectedWeatherFilterGroups.collectAsStateWithLifecycle()
     val inProgressWeatherFilterGroup by weatherViewModel.inCreationFilterGroup.collectAsStateWithLifecycle()
 
     Log.i(LOG_TAG, "WeatherFilterGroups: $weatherFilterGroups")
-
-    if(currentSelectedLocation != null) {
-        weatherViewModel.updateWeatherInfo(currentSelectedLocation!!.latitude, currentSelectedLocation!!.longitude)
-    } else if(gpsLocation != null) {
-        weatherViewModel.updateWeatherInfo(gpsLocation!!.latitude, gpsLocation!!.longitude)
-    }
 
     Column(
         Modifier
@@ -66,7 +55,7 @@ fun WeatherGeneralHourlyPeriodsView(
             for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks!!) {
                 weatherFilterGroups.runWeatherDisplayBlockThroughFilters(
                     weatherPeriodDisplayBlock,
-                    selectedWeatherFilterGroupNames,
+                    selectedWeatherFilterGroupIds,
                     inProgressWeatherFilterGroup
                 )
                 val generalPeriod = weatherPeriodDisplayBlock.generalWeatherPeriod

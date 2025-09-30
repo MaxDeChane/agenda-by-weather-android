@@ -10,7 +10,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SavedLocationsDao @Inject constructor(private val moshi: Moshi) {
+class SavedLocationsDao @Inject constructor(moshi: Moshi) {
 
     private val jsonAdapter = moshi.adapter(SavedLocations::class.java)
 

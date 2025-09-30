@@ -1,5 +1,6 @@
 package com.example.weatherbyagendaandroid.presentation.model
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.compose.ui.graphics.Color
@@ -13,6 +14,7 @@ import com.example.weatherbyagendaandroid.dao.WeatherRepository
 import com.example.weatherbyagendaandroid.dao.domain.GridPointsResponse
 import com.example.weatherbyagendaandroid.dao.domain.WeatherPeriod
 import com.example.weatherbyagendaandroid.dao.domain.WeatherProperties
+import com.example.weatherbyagendaandroid.helpers.LocationHelper
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilter
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroup
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroupEditHolder
@@ -33,6 +35,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(@ApplicationContext private val context: Context,
+                                           locationHelper: LocationHelper,
                                            private val weatherRepository: WeatherRepository,
                                            private val weatherFilterGroupsDao: WeatherFilterGroupsDao): ViewModel() {
 
@@ -69,6 +72,13 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
     val selectedWeatherFilterGroups = _selectedWeatherFilterGroups.asStateFlow()
 
     init {
+        locationHelper.retrieveCurrentLocation({location ->
+            updateWeatherInfo(location.latitude, location.longitude)
+        }){
+            // Reload activity. This will kick off the prompting for access.
+            (context as Activity).recreate()
+        }
+
         viewModelScope.launch {
             val loadedWeatherFilterGroups = weatherFilterGroupsDao.retrieveWeatherFilterGroups(context)
 
@@ -122,10 +132,10 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
     fun addRemoveSelectedWeatherFilterGroup(filterGroupId: Int) {
         val selectFilterGroupsToUpdate = selectedWeatherFilterGroups.value.toMutableSet()
         if(selectFilterGroupsToUpdate.remove(filterGroupId)) {
-            _selectedWeatherFilterGroups.value = selectFilterGroupsToUpdate
+            _selectedWeatherFilterGroups.value = selectFilterGroupsToUpdate.toSet()
         } else {
             selectFilterGroupsToUpdate.add(filterGroupId)
-            _selectedWeatherFilterGroups.value = selectFilterGroupsToUpdate
+            _selectedWeatherFilterGroups.value = selectFilterGroupsToUpdate.toSet()
         }
     }
 
@@ -162,7 +172,7 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
         _inEditFilterGroupHolders.value = inEditFilterGroupsCopy
     }
 
-    fun updateWeatherFilterGroup(filterGroupId: Int, filterGroupName: String) {
+    fun updateWeatherFilterGroup(filterGroupId: Int) {
         if(!inEditFilterGroupHolders.value.containsKey(filterGroupId)) {
             Log.e(LOG_TAG, "Updated filter group not found by id $filterGroupId " +
                     "This should not happen and needs to be investigated.")
@@ -172,7 +182,7 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
         val inEditFilterGroupHolderCopy = inEditFilterGroupHolders.value.toMutableMap()
         val updatedFilterGroup = inEditFilterGroupHolderCopy.remove(filterGroupId)!!.weatherFilterGroupToEdit
 
-        val updatedFilterGroups = weatherFilterGroups.value.updateWeatherFilterGroup(filterGroupId, filterGroupName, updatedFilterGroup)
+        val updatedFilterGroups = weatherFilterGroups.value.updateWeatherFilterGroup(filterGroupId, updatedFilterGroup)
 
         _weatherFilterGroups.value = updatedFilterGroups
         _inEditFilterGroupHolders.value = inEditFilterGroupHolderCopy

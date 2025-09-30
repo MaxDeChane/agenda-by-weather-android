@@ -21,16 +21,25 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.presentation.composable.dialog.UpdateLocationAlertView
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
+import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
 @Composable
-fun LocationView(locationViewModel: LocationViewModel = viewModel()
+fun LocationView(locationViewModel: LocationViewModel = viewModel(),
+                 weatherViewModel: WeatherViewModel = viewModel()
 ) {
     var showAddLocationAlertView by remember { mutableStateOf(false) }
 
-    val currentSavedLocation by locationViewModel.selectedSavedLocation.collectAsStateWithLifecycle()
+    val gpsLocation by locationViewModel.gpsLocation.collectAsStateWithLifecycle()
+    val currentSelectedLocation by locationViewModel.selectedSavedLocation.collectAsStateWithLifecycle()
     val savedLocations by locationViewModel.savedLocations.collectAsStateWithLifecycle()
 
-    val currentSavedLocationId = if(currentSavedLocation != null) currentSavedLocation!!.id else -1
+    if(currentSelectedLocation != null) {
+        weatherViewModel.updateWeatherInfo(currentSelectedLocation!!.latitude, currentSelectedLocation!!.longitude)
+    } else if(gpsLocation != null) {
+        weatherViewModel.updateWeatherInfo(gpsLocation!!.latitude, gpsLocation!!.longitude)
+    }
+
+    val currentSavedLocationId = if(currentSelectedLocation != null) currentSelectedLocation!!.id else -1
     Column(
         modifier = Modifier
             .fillMaxWidth()
