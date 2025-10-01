@@ -60,7 +60,7 @@ fun MenuView(
             ExpandableView("Weather Filter Groups", showWeatherFilterGroupsExpanded, menuViewModel::showWeatherFilterGroupsExpansionClick)
 
             if(showWeatherFilterGroupsExpanded) {
-                WeatherFilterGroupsSelectionView()
+                WeatherFilterGroupsMenuView()
             }
 
             ExpandableView("Locations", showUpdateLocationExpanded, menuViewModel::showUpdateLocationExpansionClick)

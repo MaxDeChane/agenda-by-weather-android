@@ -1,5 +1,6 @@
 package com.example.weatherbyagendaandroid.presentation.domain
 
+import com.google.android.gms.common.util.CollectionUtils
 import com.squareup.moshi.JsonClass
 import kotlin.random.Random
 
@@ -51,5 +52,41 @@ data class WeatherFilterGroup(val id: Int = -1, var name: String = "",
 
     fun hasFilters(): Boolean {
         return filtersByName.isNotEmpty()
+    }
+
+    fun runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlock: WeatherPeriodDisplayBlock) {
+        // Reset the filtered periods in block to make sure
+        // they get rechecked against current filters.
+        weatherPeriodDisplayBlock.resetFiltered()
+
+        if(this.hasFilters()) {
+            var anyHourlyPeriodsFiltered = false
+            var allHourlyPeriodsFiltered = true
+            for(hourlyWeatherPeriod in weatherPeriodDisplayBlock.hourlyWeatherPeriods) {
+                // check and see if period already filtered since no need to keep
+                // going if already checked
+                if(hourlyWeatherPeriod.filtered) {
+                    break
+                }
+
+                for(currentFilter in filtersByName.values) {
+                    if (currentFilter.filter(hourlyWeatherPeriod)) {
+                        hourlyWeatherPeriod.filtered = true
+                        anyHourlyPeriodsFiltered = true
+                        // If already filtered then break out since no sense in running through anymore
+                        break
+                    } else {
+                        hourlyWeatherPeriod.filtered = false
+                        allHourlyPeriodsFiltered = false
+                    }
+                }
+            }
+
+            if(allHourlyPeriodsFiltered) {
+                weatherPeriodDisplayBlock.isWholeBlockFiltered = true
+            } else if(anyHourlyPeriodsFiltered) {
+                weatherPeriodDisplayBlock.isPartialBlockFiltered = true
+            }
+        }
     }
 }

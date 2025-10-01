@@ -31,21 +31,22 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.R
+import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewModel
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
 @Composable
 fun WeatherGeneralHourlyPeriodsView(
     innerPadding: PaddingValues,
+    weatherFilterViewModel: WeatherFilterViewModel = viewModel(),
     weatherViewModel: WeatherViewModel = viewModel()
 ) {
     val LOG_TAG = remember { "WeatherGeneralHourlyPeriodsView" }
 
     val weatherPeriodDisplayBlocks by weatherViewModel.weatherPeriodDisplayBlocks.collectAsStateWithLifecycle()
-    val weatherFilterGroups by weatherViewModel.weatherFilterGroups.collectAsStateWithLifecycle()
-    val selectedWeatherFilterGroupIds by weatherViewModel.selectedWeatherFilterGroups.collectAsStateWithLifecycle()
-    val inProgressWeatherFilterGroup by weatherViewModel.inCreationFilterGroup.collectAsStateWithLifecycle()
+    val currentSelectedFilterGroup by weatherFilterViewModel.currentFilterGroup.collectAsStateWithLifecycle()
+    val inProgressWeatherFilterGroup by weatherFilterViewModel.inCreationFilterGroup.collectAsStateWithLifecycle()
 
-    Log.i(LOG_TAG, "WeatherFilterGroups: $weatherFilterGroups")
+    val currentFilterGroup = if(currentSelectedFilterGroup == null) inProgressWeatherFilterGroup else currentSelectedFilterGroup
 
     Column(
         Modifier
@@ -53,10 +54,8 @@ fun WeatherGeneralHourlyPeriodsView(
             .verticalScroll(rememberScrollState())) {
         if (weatherPeriodDisplayBlocks != null) {
             for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks!!) {
-                weatherFilterGroups.runWeatherDisplayBlockThroughFilters(
-                    weatherPeriodDisplayBlock,
-                    selectedWeatherFilterGroupIds,
-                    inProgressWeatherFilterGroup
+                currentFilterGroup?.runWeatherDisplayBlockThroughFilters(
+                    weatherPeriodDisplayBlock
                 )
                 val generalPeriod = weatherPeriodDisplayBlock.generalWeatherPeriod
                 if (!weatherPeriodDisplayBlock.isWholeBlockFiltered) {

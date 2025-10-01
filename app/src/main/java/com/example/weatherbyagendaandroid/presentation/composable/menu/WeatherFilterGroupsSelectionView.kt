@@ -23,16 +23,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
+import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewModel
 
 @Composable
-fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewModel: WeatherViewModel = viewModel()
+fun WeatherFilterGroupsSelectionView(currentFilterGroupId: Int, isEditable: Boolean = true,
+                                     selectLocation: (locationId: Int) -> Unit,
+                                     weatherFilterViewModel: WeatherFilterViewModel = viewModel()
 ) {
     var isEditing by remember { mutableStateOf(false) }
 
-    val weatherFilterGroups by weatherViewModel.weatherFilterGroups.collectAsStateWithLifecycle()
-    val selectedWeatherFilterGroups by weatherViewModel.selectedWeatherFilterGroups.collectAsStateWithLifecycle()
-    val inEditWeatherFilterGroups by weatherViewModel.inEditFilterGroupHolders.collectAsStateWithLifecycle()
+    val weatherFilterGroups by weatherFilterViewModel.weatherFilterGroups.collectAsStateWithLifecycle()
+    val inEditWeatherFilterGroups by weatherFilterViewModel.inEditFilterGroupHolders.collectAsStateWithLifecycle()
 
     if(weatherFilterGroups.filterGroups.isNotEmpty()) {
         Column {
@@ -46,11 +47,11 @@ fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewMode
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { weatherViewModel.addRemoveSelectedWeatherFilterGroup(filterGroupEntry.key) }
+                            .clickable { selectLocation(filterGroupEntry.key) }
                     ) {
                         RadioButton(
-                            selected = selectedWeatherFilterGroups.contains(filterGroupEntry.key),
-                            onClick = { weatherViewModel.addRemoveSelectedWeatherFilterGroup(filterGroupEntry.key) },
+                            selected = currentFilterGroupId == filterGroupEntry.key,
+                            onClick = { selectLocation(filterGroupEntry.key) },
                             colors = RadioButtonDefaults.colors(
                                 selectedColor = MaterialTheme.colorScheme.primary
                             )
@@ -71,7 +72,7 @@ fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewMode
                                 text = "Edit",
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.clickable {
-                                    weatherViewModel.setupWeatherFilterGroupForEditing(filterGroupEntry.key)
+                                    weatherFilterViewModel.setupWeatherFilterGroupForEditing(filterGroupEntry.key)
                                     isEditing = !isEditing
                                 }
                             )
@@ -79,7 +80,7 @@ fun WeatherFilterGroupsSelectionView(isEditable: Boolean = true, weatherViewMode
                                 text = "Delete",
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(horizontal = 8.dp).clickable {
-                                    weatherViewModel.deleteWeatherFilterGroup(filterGroupEntry.key)
+                                    weatherFilterViewModel.deleteWeatherFilterGroup(filterGroupEntry.key)
                                 }
                             )
                         }
