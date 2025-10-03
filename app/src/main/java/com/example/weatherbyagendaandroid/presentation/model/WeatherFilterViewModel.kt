@@ -25,9 +25,8 @@ class WeatherFilterViewModel @Inject constructor(
     private val _weatherFilterGroups = MutableStateFlow(WeatherFilterGroups())
     val weatherFilterGroups = _weatherFilterGroups.asStateFlow()
 
-    // Holds the current filter group being created.
-    private val _currentFilterGroup = MutableStateFlow<WeatherFilterGroup?>(null)
-    val currentFilterGroup = _currentFilterGroup.asStateFlow()
+    private val _selectedFilterGroup = MutableStateFlow<WeatherFilterGroup?>(null)
+    val selectedFilterGroup = _selectedFilterGroup.asStateFlow()
 
     // Holds the current filter group being created.
     private val _inCreationFilterGroup = MutableStateFlow(WeatherFilterGroup())
@@ -35,9 +34,6 @@ class WeatherFilterViewModel @Inject constructor(
 
     private val _inEditFilterGroupHolders = MutableStateFlow<Map<Int, WeatherFilterGroupEditHolder>>(mapOf())
     val inEditFilterGroupHolders = _inEditFilterGroupHolders.asStateFlow()
-
-//    private val _selectedWeatherFilterGroups = MutableStateFlow<Set<Int>>(setOf())
-//    val selectedWeatherFilterGroups = _selectedWeatherFilterGroups.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -49,12 +45,19 @@ class WeatherFilterViewModel @Inject constructor(
         }
     }
 
+    fun hasSelectedWeatherFilterGroup(): Boolean {
+        return selectedFilterGroup.value != null
+    }
+
     fun selectWeatherFilterGroup(filterGroupId: Int) {
-        if(currentFilterGroup.value == null ||
-            currentFilterGroup.value!!.id != filterGroupId) {
-            _currentFilterGroup.value = weatherFilterGroups.value.retrieveWeatherFilterGroup(filterGroupId)
+        if(selectedFilterGroup.value == null ||
+            selectedFilterGroup.value!!.id != filterGroupId) {
+            if(inCreationFilterGroup.value.hasFilters()) {
+                _inCreationFilterGroup.value = WeatherFilterGroup()
+            }
+            _selectedFilterGroup.value = weatherFilterGroups.value.retrieveWeatherFilterGroup(filterGroupId)
         } else {
-            _currentFilterGroup.value = null
+            _selectedFilterGroup.value = null
         }
     }
 
@@ -114,8 +117,8 @@ class WeatherFilterViewModel @Inject constructor(
 
     fun deleteWeatherFilterGroup(locationId: Int) {
         _weatherFilterGroups.value = weatherFilterGroups.value.deleteWeatherFilterGroup(locationId)
-        if(currentFilterGroup.value?.id == locationId) {
-            _currentFilterGroup.value = null
+        if(selectedFilterGroup.value?.id == locationId) {
+            _selectedFilterGroup.value = null
         }
 
         viewModelScope.launch {
@@ -158,6 +161,12 @@ class WeatherFilterViewModel @Inject constructor(
             _inEditFilterGroupHolders.value = inEditFilterGroupHoldersCopy
         } else {
             _inCreationFilterGroup.value = WeatherFilterGroup()
+        }
+    }
+
+    fun clearSelectedWeatherFilterGroup() {
+        if(selectedFilterGroup.value != null) {
+            this.selectWeatherFilterGroup(selectedFilterGroup.value!!.id)
         }
     }
 }

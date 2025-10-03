@@ -1,6 +1,5 @@
 package com.example.weatherbyagendaandroid.presentation.composable
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -43,7 +42,7 @@ fun WeatherGeneralHourlyPeriodsView(
     val LOG_TAG = remember { "WeatherGeneralHourlyPeriodsView" }
 
     val weatherPeriodDisplayBlocks by weatherViewModel.weatherPeriodDisplayBlocks.collectAsStateWithLifecycle()
-    val currentSelectedFilterGroup by weatherFilterViewModel.currentFilterGroup.collectAsStateWithLifecycle()
+    val currentSelectedFilterGroup by weatherFilterViewModel.selectedFilterGroup.collectAsStateWithLifecycle()
     val inProgressWeatherFilterGroup by weatherFilterViewModel.inCreationFilterGroup.collectAsStateWithLifecycle()
 
     val currentFilterGroup = if(currentSelectedFilterGroup == null) inProgressWeatherFilterGroup else currentSelectedFilterGroup

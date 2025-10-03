@@ -19,18 +19,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.presentation.domain.TemperatureFilter
+import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewModel
 
 @Composable
 fun TemperatureRangeInput(
     temperatureRangeFilter: TemperatureFilter,
     onRangeChanged: (updatedLowerTemp: Int, updatedHigherTemp: Int) -> Unit,
-    clear: Boolean
+    clear: Boolean,
+    weatherFilterViewModel: WeatherFilterViewModel = viewModel()
 ) {
     var lowerTempText by remember { mutableStateOf(if(temperatureRangeFilter.lowerTemperature == Int.MIN_VALUE) "" else temperatureRangeFilter.lowerTemperature.toString()) }
     var higherTempText by remember { mutableStateOf(if(temperatureRangeFilter.higherTemperature == Int.MAX_VALUE) "" else temperatureRangeFilter.higherTemperature.toString()) }
 
-    if(clear) {
+    if(clear || weatherFilterViewModel.hasSelectedWeatherFilterGroup()) {
         lowerTempText = ""
         higherTempText = ""
     }

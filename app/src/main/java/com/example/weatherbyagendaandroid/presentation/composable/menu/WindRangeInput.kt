@@ -19,18 +19,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.presentation.domain.WindFilter
+import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewModel
 
 @Composable
 fun WindRangeInput(
     windRangeFilter: WindFilter,
     onRangeChanged: (updatedLowerTemp: Int, updatedHigherTemp: Int) -> Unit,
-    clear: Boolean
+    clear: Boolean,
+    weatherFilterViewModel: WeatherFilterViewModel = viewModel()
 ) {
     var minWindSpeedText by remember { mutableStateOf(if(windRangeFilter.lowerWindSpeed == -1) "" else windRangeFilter.lowerWindSpeed.toString()) }
     var maxWindSpeedText by remember { mutableStateOf(if(windRangeFilter.higherWindSpeed == Int.MAX_VALUE) "" else windRangeFilter.higherWindSpeed.toString()) }
 
-    if(clear) {
+    if(clear || weatherFilterViewModel.hasSelectedWeatherFilterGroup()) {
         minWindSpeedText = ""
         maxWindSpeedText = ""
     }

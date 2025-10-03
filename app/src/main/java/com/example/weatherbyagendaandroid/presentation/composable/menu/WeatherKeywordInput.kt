@@ -23,7 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherKeywordFilter
+import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewModel
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -31,7 +33,8 @@ fun WeatherKeywordInput(
     weatherKeywordFilter: WeatherKeywordFilter,
     onDefaultSelectedKeywordsUpdated: (updatedSelectedKeywords: Set<String>) -> Unit,
     onCustomSelectedKeywordsUpdated: (updatedCustomKeywords: Set<String>) -> Unit,
-    clear: Boolean
+    clear: Boolean,
+    weatherFilterViewModel: WeatherFilterViewModel = viewModel()
 ) {
     val LOG_TAG = "WeatherKeywordInput"
 
@@ -41,7 +44,7 @@ fun WeatherKeywordInput(
     var customKeywordOptions by remember { mutableStateOf(setOf<String>()) }
     var customKeyword by remember { mutableStateOf("") }
 
-    if(clear) {
+    if(clear || weatherFilterViewModel.hasSelectedWeatherFilterGroup()) {
         currentDefaultSelectedKeywords = setOf()
         currentCustomSelectedKeywords = setOf()
         customKeywordOptions = setOf()
