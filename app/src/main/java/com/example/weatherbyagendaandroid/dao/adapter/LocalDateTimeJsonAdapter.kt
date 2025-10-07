@@ -14,7 +14,7 @@ class LocalDateTimeJsonAdapter: JsonAdapter<LocalDateTime>() {
     override fun fromJson(jsonReader: JsonReader): LocalDateTime {
         val value = jsonReader.nextString()
 
-        return LocalDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
     }
 
     @ToJson
@@ -24,6 +24,6 @@ class LocalDateTimeJsonAdapter: JsonAdapter<LocalDateTime>() {
             return
         }
 
-        jsonWriter.value(localDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+        jsonWriter.value(localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
     }
 }
