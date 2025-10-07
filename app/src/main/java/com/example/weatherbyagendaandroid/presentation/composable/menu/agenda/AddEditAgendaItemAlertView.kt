@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,19 +26,25 @@ import com.example.weatherbyagendaandroid.presentation.composable.ExpandableView
 import com.example.weatherbyagendaandroid.presentation.composable.menu.DateTimeInput
 import com.example.weatherbyagendaandroid.presentation.composable.menu.SavedLocationSelectionView
 import com.example.weatherbyagendaandroid.presentation.composable.menu.WeatherFilterGroupsSelectionView
+import com.example.weatherbyagendaandroid.presentation.model.AgendaViewModel
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 
 @Composable
-fun AddAgendaItemAlertView(dismiss: () -> Unit, locationViewModel: LocationViewModel = viewModel()) {
-    var agendaItemName by remember { mutableStateOf("") }
-    var startDateTime by remember { mutableStateOf(LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0)) }
-    var endDateTime by remember { mutableStateOf(startDateTime.plusHours(1)) }
+fun AddEditAgendaItemAlertView(dismiss: () -> Unit, agendaItemToEdit: AgendaItem? = null,
+                               locationViewModel: LocationViewModel = viewModel(),
+                               agendaViewModel: AgendaViewModel = viewModel()
+) {
+    val isEditing = agendaItemToEdit != null
+
+    var agendaItemName by remember { mutableStateOf(if(isEditing){ agendaItemToEdit.name } else "") }
+    var startDateTime by remember { mutableStateOf(if(isEditing){ agendaItemToEdit.startTime } else
+        LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0)) }
+    var endDateTime by remember { mutableStateOf(if(isEditing){ agendaItemToEdit.endTime } else startDateTime.plusHours(1)) }
     var locationExpanded by remember { mutableStateOf(false) }
-    var selectedLocationId by remember { mutableStateOf(-1) }
+    var selectedLocationId by remember { mutableIntStateOf(if(isEditing){ agendaItemToEdit.locationId } else -1) }
     var weatherFilterGroupsExpanded by remember { mutableStateOf(false) }
-    var selectedFilterGroupName by remember { mutableStateOf("") }
+    var selectedFilterGroupId by remember { mutableIntStateOf(if(isEditing){ agendaItemToEdit.weatherFilterGroupId } else -1) }
 
     val gpsLocation by locationViewModel.gpsLocation.collectAsStateWithLifecycle()
     val savedLocations by locationViewModel.savedLocations.collectAsStateWithLifecycle()
@@ -74,13 +81,25 @@ fun AddAgendaItemAlertView(dismiss: () -> Unit, locationViewModel: LocationViewM
                 ExpandableView("Location", locationExpanded) { locationExpanded = !locationExpanded }
 
                 if(locationExpanded) {
-                    SavedLocationSelectionView(selectedLocationId, savedLocations,false, { selectedLocationId = it })
+                    SavedLocationSelectionView(selectedLocationId, savedLocations,false, {
+                        if(selectedLocationId == it) {
+                            selectedLocationId = -1
+                        } else {
+                            selectedLocationId = it
+                        }
+                    })
                 }
 
                 ExpandableView("Weather Filter Groups", weatherFilterGroupsExpanded) { weatherFilterGroupsExpanded = !weatherFilterGroupsExpanded }
 
                 if(weatherFilterGroupsExpanded) {
-                    WeatherFilterGroupsSelectionView(false)
+                    WeatherFilterGroupsSelectionView(selectedFilterGroupId,false, {
+                        if(selectedFilterGroupId == it) {
+                            selectedFilterGroupId = -1
+                        } else {
+                            selectedFilterGroupId = it
+                        }
+                    })
                 }
             }
         },
@@ -91,7 +110,11 @@ fun AddAgendaItemAlertView(dismiss: () -> Unit, locationViewModel: LocationViewM
             TextButton(
                 enabled = agendaItemName.isNotBlank(),
                 onClick = {
-//                    val agendaItem = AgendaItem()
+                    val id = agendaItemToEdit?.id ?: -1
+                    val agendaItem = AgendaItem(id, agendaItemName, startDateTime, endDateTime,
+                        selectedLocationId, selectedFilterGroupId)
+                    agendaViewModel.addAgendaItem(agendaItem)
+                    dismiss()
                 }
             ) {
                 Text("Confirm")

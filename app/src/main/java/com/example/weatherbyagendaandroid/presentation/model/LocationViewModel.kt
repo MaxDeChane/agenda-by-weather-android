@@ -80,7 +80,7 @@ class LocationViewModel @Inject constructor(
 
     fun selectLocation(locationId: Int) {
         if(selectedSavedLocation.value == null ||
-            selectedSavedLocation.value!!.name != savedLocations.value.retrieveLocation(locationId).name) {
+            selectedSavedLocation.value!!.id != locationId) {
             _selectedSavedLocation.value = savedLocations.value.retrieveLocation(locationId)
         } else {
             _selectedSavedLocation.value = null

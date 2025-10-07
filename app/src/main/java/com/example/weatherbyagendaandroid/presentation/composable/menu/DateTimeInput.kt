@@ -58,23 +58,26 @@ fun DateTimeInput(initialDateTime: LocalDateTime,
 
     val startEndText = if(isStartDateTime) "Start" else "End"
 
-    Column {
-        Text(
-            text = "$startEndText Time:",
-            color = MaterialTheme.colorScheme.onSecondary,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = selectedTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
-            color = MaterialTheme.colorScheme.onSecondary,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { timePickerDialog.show() }
-        )
-        Text(
-            text = selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-            color = MaterialTheme.colorScheme.onSecondary,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { datePickerDialog.show() }
-        )
-    }
+    DateTimeView(startEndText, selectedTime, selectedDate,
+        { timePickerDialog.show() }, { datePickerDialog.show() })
+
+//    Column {
+//        Text(
+//            text = "$startEndText Time:",
+//            color = MaterialTheme.colorScheme.onSecondary,
+//            fontWeight = FontWeight.Bold,
+//        )
+//        Text(
+//            text = selectedTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
+//            color = MaterialTheme.colorScheme.onSecondary,
+//            textDecoration = TextDecoration.Underline,
+//            modifier = Modifier.clickable { timePickerDialog.show() }
+//        )
+//        Text(
+//            text = selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+//            color = MaterialTheme.colorScheme.onSecondary,
+//            textDecoration = TextDecoration.Underline,
+//            modifier = Modifier.clickable { datePickerDialog.show() }
+//        )
+//    }
 }

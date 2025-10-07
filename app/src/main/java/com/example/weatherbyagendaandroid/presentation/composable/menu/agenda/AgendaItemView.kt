@@ -19,15 +19,16 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun AgendaItemView() {
-    var showAddAgendaItemView by remember { mutableStateOf(false) }
+    var showAddAgendaItemAlertView by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondary)
     ) {
+        ExistingAgendaItemsView()
         OutlinedButton(
-            onClick = { showAddAgendaItemView = true },
+            onClick = { showAddAgendaItemAlertView = true },
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSecondary
             ),
@@ -38,7 +39,7 @@ fun AgendaItemView() {
         }
     }
 
-    if(showAddAgendaItemView) {
-        AddAgendaItemAlertView({ showAddAgendaItemView = false })
+    if(showAddAgendaItemAlertView) {
+        AddEditAgendaItemAlertView({ showAddAgendaItemAlertView = false })
     }
 }
