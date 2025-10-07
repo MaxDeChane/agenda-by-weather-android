@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.example.weatherbyagendaandroid"
-    compileSdk = 35
+    compileSdkVersion("android-36")
 
     defaultConfig {
         applicationId = "com.example.weatherbyagendaandroid"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
