@@ -58,11 +58,13 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
     val weatherPeriodDisplayBlocks = _weatherPeriodDisplayBlocks.asStateFlow()
 
     init {
-        locationHelper.retrieveCurrentLocation({location ->
-            updateWeatherInfo(location.latitude, location.longitude)
-        }){
-            // Reload activity. This will kick off the prompting for access.
-            (context as Activity).recreate()
+        viewModelScope.launch {
+            locationHelper.retrieveCurrentLocation({ location ->
+                updateWeatherInfo(location.latitude, location.longitude)
+            }) {
+                // Reload activity. This will kick off the prompting for access.
+                (context as Activity).recreate()
+            }
         }
     }
 
