@@ -2,7 +2,6 @@ package com.example.weatherbyagendaandroid.presentation.composable
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,15 +11,19 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,15 +50,33 @@ fun WeatherGeneralHourlyPeriodsView(
 
     val currentFilterGroup = if(currentSelectedFilterGroup == null) inProgressWeatherFilterGroup else currentSelectedFilterGroup
 
-    Column(
-        Modifier
-            .padding(innerPadding)
-            .verticalScroll(rememberScrollState())) {
+    var filterWeatherPeriodDisplayBlock by remember { mutableStateOf(weatherPeriodDisplayBlocks) }
+    var refreshKey by remember { mutableStateOf(false) }
+
+    LaunchedEffect(System.identityHashCode(currentFilterGroup) + System.identityHashCode(weatherPeriodDisplayBlocks)) {
         if (weatherPeriodDisplayBlocks != null) {
-            for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks!!) {
-                currentFilterGroup?.runWeatherDisplayBlockThroughFilters(
-                    weatherPeriodDisplayBlock
-                )
+            if(currentFilterGroup != null && currentFilterGroup.hasFilters()) {
+                for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks!!) {
+                    currentFilterGroup.runWeatherDisplayBlockThroughFilters(
+                        weatherPeriodDisplayBlock
+                    )
+                }
+                filterWeatherPeriodDisplayBlock = weatherPeriodDisplayBlocks!!.toList()
+            } else {
+                for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks!!) {
+                    weatherPeriodDisplayBlock.resetFiltered()
+                }
+                filterWeatherPeriodDisplayBlock = weatherPeriodDisplayBlocks!!.toList()
+            }
+            refreshKey = !refreshKey
+        }
+    }
+
+    if (filterWeatherPeriodDisplayBlock != null) {
+        LazyColumn (
+            Modifier
+                .padding(innerPadding)) {
+            items(filterWeatherPeriodDisplayBlock!!, { "${it.generalWeatherPeriod.startTime}-$refreshKey" }) { weatherPeriodDisplayBlock ->
                 val generalPeriod = weatherPeriodDisplayBlock.generalWeatherPeriod
                 if (!weatherPeriodDisplayBlock.isWholeBlockFiltered) {
                     Column(
@@ -78,14 +99,13 @@ fun WeatherGeneralHourlyPeriodsView(
 
                     HorizontalDivider(color = Color.Black, thickness = 1.dp)
 
-                    Row(
+                    LazyRow(
                         Modifier
                             .border(1.dp, Color.Gray)
-                            .height(175.dp)
-                            .horizontalScroll(rememberScrollState()),
-                        Arrangement.Center
+                            .height(175.dp),
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        for (currentHourlyPeriod in weatherPeriodDisplayBlock.hourlyWeatherPeriods) {
+                        items(weatherPeriodDisplayBlock.hourlyWeatherPeriods, { "${it.startTime}-$refreshKey" }) {currentHourlyPeriod ->
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
