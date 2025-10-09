@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.R
+import com.example.weatherbyagendaandroid.presentation.model.FilterStatus
 import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewModel
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
@@ -45,38 +48,35 @@ fun WeatherGeneralHourlyPeriodsView(
     val LOG_TAG = remember { "WeatherGeneralHourlyPeriodsView" }
 
     val weatherPeriodDisplayBlocks by weatherViewModel.weatherPeriodDisplayBlocks.collectAsStateWithLifecycle()
-    val currentSelectedFilterGroup by weatherFilterViewModel.selectedFilterGroup.collectAsStateWithLifecycle()
-    val inProgressWeatherFilterGroup by weatherFilterViewModel.inCreationFilterGroup.collectAsStateWithLifecycle()
-
-    val currentFilterGroup = if(currentSelectedFilterGroup == null) inProgressWeatherFilterGroup else currentSelectedFilterGroup
-
-    var filterWeatherPeriodDisplayBlock by remember { mutableStateOf(weatherPeriodDisplayBlocks) }
+    val filterStatus by weatherFilterViewModel.filterStatus.collectAsStateWithLifecycle()
     var refreshKey by remember { mutableStateOf(false) }
 
-    LaunchedEffect(System.identityHashCode(currentFilterGroup) + System.identityHashCode(weatherPeriodDisplayBlocks)) {
-        if (weatherPeriodDisplayBlocks != null) {
-            if(currentFilterGroup != null && currentFilterGroup.hasFilters()) {
-                for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks!!) {
-                    currentFilterGroup.runWeatherDisplayBlockThroughFilters(
-                        weatherPeriodDisplayBlock
-                    )
-                }
-                filterWeatherPeriodDisplayBlock = weatherPeriodDisplayBlocks!!.toList()
-            } else {
-                for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks!!) {
-                    weatherPeriodDisplayBlock.resetFiltered()
-                }
-                filterWeatherPeriodDisplayBlock = weatherPeriodDisplayBlocks!!.toList()
+    LaunchedEffect(filterStatus.name + System.identityHashCode(weatherPeriodDisplayBlocks)) {
+        if(weatherPeriodDisplayBlocks != null) {
+            if (filterStatus == FilterStatus.IN_PROGRESS) {
+                weatherFilterViewModel.runWeatherDisplayBlockThroughFilters(
+                    weatherPeriodDisplayBlocks!!
+                )
+                refreshKey = !refreshKey
             }
-            refreshKey = !refreshKey
         }
     }
 
-    if (filterWeatherPeriodDisplayBlock != null) {
+    if (filterStatus == FilterStatus.IN_PROGRESS) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize() // take up the entire available space
+                .background(MaterialTheme.colorScheme.primary) // your background color
+        ) {
+            Text("Filtering...", Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.displayLarge)
+        }
+    } else if(weatherPeriodDisplayBlocks != null) {
         LazyColumn (
             Modifier
                 .padding(innerPadding)) {
-            items(filterWeatherPeriodDisplayBlock!!, { "${it.generalWeatherPeriod.startTime}-$refreshKey" }) { weatherPeriodDisplayBlock ->
+            items(weatherPeriodDisplayBlocks!!, { "${it.generalWeatherPeriod.startTime}-$refreshKey" }) { weatherPeriodDisplayBlock ->
                 val generalPeriod = weatherPeriodDisplayBlock.generalWeatherPeriod
                 if (!weatherPeriodDisplayBlock.isWholeBlockFiltered) {
                     Column(

@@ -9,6 +9,7 @@ import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilter
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroup
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroupEditHolder
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroups
+import com.example.weatherbyagendaandroid.presentation.domain.WeatherPeriodDisplayBlock
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel.Companion.LOG_TAG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -17,10 +18,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class FilterStatus {
+    IN_PROGRESS,
+    DONE
+}
+
 @HiltViewModel
 class WeatherFilterViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val weatherFilterGroupsDao: WeatherFilterGroupsDao): ViewModel() {
+
+    private val _filterStatus = MutableStateFlow(FilterStatus.DONE)
+    val filterStatus = _filterStatus.asStateFlow()
 
     private val _weatherFilterGroups = MutableStateFlow(WeatherFilterGroups())
     val weatherFilterGroups = _weatherFilterGroups.asStateFlow()
@@ -56,8 +65,10 @@ class WeatherFilterViewModel @Inject constructor(
                 _inCreationFilterGroup.value = WeatherFilterGroup()
             }
             _selectedFilterGroup.value = weatherFilterGroups.value.retrieveWeatherFilterGroup(filterGroupId)
+            _filterStatus.value = FilterStatus.IN_PROGRESS
         } else {
             _selectedFilterGroup.value = null
+            _filterStatus.value = FilterStatus.IN_PROGRESS
         }
     }
 
@@ -136,6 +147,7 @@ class WeatherFilterViewModel @Inject constructor(
         } else {
             _inCreationFilterGroup.value =
                 inCreationFilterGroup.value.addWeatherFilter(filterClassName, weatherFilter)
+            _filterStatus.value = FilterStatus.IN_PROGRESS
         }
     }
 
@@ -149,6 +161,7 @@ class WeatherFilterViewModel @Inject constructor(
         } else {
             _inCreationFilterGroup.value =
                 inCreationFilterGroup.value.removeWeatherFilter(filterClassName)
+            _filterStatus.value = FilterStatus.IN_PROGRESS
         }
     }
 
@@ -168,5 +181,18 @@ class WeatherFilterViewModel @Inject constructor(
         if(selectedFilterGroup.value != null) {
             this.selectWeatherFilterGroup(selectedFilterGroup.value!!.id)
         }
+    }
+
+    fun runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlocks: List<WeatherPeriodDisplayBlock>) {
+        val currentFilterGroup = if(selectedFilterGroup.value == null) inCreationFilterGroup.value else selectedFilterGroup.value
+
+        for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks) {
+            viewModelScope.launch {
+                weatherPeriodDisplayBlock.resetFiltered()
+                currentFilterGroup?.runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlock)
+            }
+        }
+
+        _filterStatus.value = FilterStatus.DONE
     }
 }
