@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.lifecycle.process)
+    implementation(libs.kotlinx.coroutines.play.services)
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.hilt.android)

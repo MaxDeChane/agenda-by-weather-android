@@ -22,6 +22,9 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
 import com.google.android.gms.tasks.CancellationTokenSource
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -82,49 +85,55 @@ class LocationHelper @Inject constructor(
         return (currentTime - locationTime) > maxAgeMillis
     }
 
-    fun checkLocationPermissions(setLocationPermissionStatus: (locationPermissionStatus: LocationPermissionStatus) -> Unit) {
-        val locationRequest = LocationRequest
-            .Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 300_000)
-            .build()
+    suspend fun checkLocationPermissions(setLocationPermissionStatus: (locationPermissionStatus: LocationPermissionStatus) -> Unit) =
+        withContext(Dispatchers.Default) {
+            val locationRequest = LocationRequest
+                .Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 300_000)
+                .build()
 
-        val locationSettingsRequest = LocationSettingsRequest.Builder().addLocationRequest(locationRequest).build()
+            val locationSettingsRequest = LocationSettingsRequest.Builder().addLocationRequest(locationRequest).build()
 
-        settingsClient.checkLocationSettings(locationSettingsRequest).addOnCompleteListener {
-            try {
-                // Check that access was granted
-                it.getResult(ApiException::class.java)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED) {
-                    setLocationPermissionStatus(LocationPermissionStatus.CoarseLocationDenied(
-                        Manifest.permission.ACCESS_COARSE_LOCATION))
-                    return@addOnCompleteListener
-                }
+            // Check if the user has allowed the app to use location services.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED) {
+                setLocationPermissionStatus(LocationPermissionStatus.CoarseLocationDenied(
+                    Manifest.permission.ACCESS_COARSE_LOCATION))
+            } else {
+
                 // TODO: Add this back in when set it up to run in background
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//                            ContextCompat.checkSelfPermission(
-//                                context,
-//                                android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
-//                            ) == PackageManager.PERMISSION_GRANTED
-//                        } else true
-            } catch (exception: ApiException) {
-                when (exception.statusCode) {
-                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
-                        Log.e(
-                            LOG_TAG,
-                            "Unable to get location services exception ${exception.cause}"
-                        )
+                //                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                //                            ContextCompat.checkSelfPermission(
+                //                                context,
+                //                                android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                //                            ) == PackageManager.PERMISSION_GRANTED
+                //                        } else true
 
-                        val resolvableApiException = exception as ResolvableApiException
-                        setLocationPermissionStatus(LocationPermissionStatus.ResolvableError(resolvableApiException.resolution.intentSender))
-                        return@addOnCompleteListener
+                try {
+                    // Check if the device has location settings on
+                    val response =
+                        settingsClient.checkLocationSettings(locationSettingsRequest).await()
+
+                    setLocationPermissionStatus(LocationPermissionStatus.AllPermissionsGranted)
+                } catch (exception: ApiException) {
+                    when (exception.statusCode) {
+                        LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                            Log.e(
+                                LOG_TAG,
+                                "Unable to get location services exception ${exception.cause}"
+                            )
+
+                            val resolvableApiException = exception as ResolvableApiException
+                            setLocationPermissionStatus(
+                                LocationPermissionStatus.ResolvableError(
+                                    resolvableApiException.resolution.intentSender
+                                )
+                            )
+                        }
                     }
                 }
             }
-
-            setLocationPermissionStatus(LocationPermissionStatus.AllPermissionsGranted)
         }
-    }
 }
