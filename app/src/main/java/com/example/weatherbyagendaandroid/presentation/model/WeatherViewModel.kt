@@ -9,20 +9,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherbyagendaandroid.R
-import com.example.weatherbyagendaandroid.dao.WeatherFilterGroupsDao
 import com.example.weatherbyagendaandroid.dao.WeatherRepository
 import com.example.weatherbyagendaandroid.dao.domain.GridPointsResponse
 import com.example.weatherbyagendaandroid.dao.domain.WeatherPeriod
 import com.example.weatherbyagendaandroid.dao.domain.WeatherProperties
 import com.example.weatherbyagendaandroid.helpers.LocationHelper
-import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilter
-import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroup
-import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroupEditHolder
-import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroups
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherPeriodDisplayBlock
-import com.google.android.gms.common.util.CollectionUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -69,7 +65,7 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
     }
 
     fun updateWeatherInfo(latitude: Double, longitude: Double) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             // Retrieve the oldGridId if it exists to compare against
             // the new one since if they are different it is known that
             // the forecast will need to be updated since a new location
@@ -85,38 +81,49 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
                 weatherRepository.retrieveGridPoints(latitude, longitude)
     }
 
-    private fun updateWeatherForecasts(oldGridId: String?) {
+    private suspend fun updateWeatherForecasts(oldGridId: String?) {
         var updatedGeneralForecast: WeatherProperties? = null
-        val generalForecastJob = viewModelScope.launch {
-            updatedGeneralForecast = withTimeoutOrNull(Duration.ofSeconds(10)) {
-                updateForecastIfNeeded(true, oldGridId)
+        var updatedHourlyForecast: WeatherProperties? = null
+
+        coroutineScope {
+            launch {
+                updatedGeneralForecast = withTimeoutOrNull(Duration.ofSeconds(10)) {
+                    updateForecastIfNeeded(true, oldGridId)
+                }
+            }
+
+            launch {
+                updatedHourlyForecast = withTimeoutOrNull(Duration.ofSeconds(10)) {
+                    updateForecastIfNeeded(false, oldGridId)
+                }
+
+                // If hourly periods were found then set it and get the current
+                // weather period from it.
+                if(updatedHourlyForecast != null) {
+                    _currentTimeWeatherPeriod.value = updateCurrentTimeWeatherPeriod(updatedHourlyForecast!!)
+                }
             }
         }
 
-        viewModelScope.launch {
-            val updatedHourlyForecast = updateForecastIfNeeded(false, oldGridId)
-            _hourlyForecast.value = updatedHourlyForecast
-            _currentTimeWeatherPeriod.value = updateCurrentTimeWeatherPeriod()
+        if(updatedGeneralForecast != null) {
+            _generalForecast.value = updatedGeneralForecast
 
-            generalForecastJob.join().run {
-                if(updatedGeneralForecast != null && updatedHourlyForecast != null) {
-                    _generalForecast.value = updatedGeneralForecast
-
-                    _weatherPeriodDisplayBlocks.value =
-                        groupWeatherPeriodsInBlocks(updatedGeneralForecast!!.periods, updatedHourlyForecast.periods)
-                }
+            if(updatedHourlyForecast != null) {
+                _hourlyForecast.value = updatedHourlyForecast
+                _weatherPeriodDisplayBlocks.value =
+                    groupWeatherPeriodsInBlocks(
+                        updatedGeneralForecast!!.periods,
+                        updatedHourlyForecast!!.periods
+                    )
             }
         }
     }
 
-    private fun updateCurrentTimeWeatherPeriod(): WeatherPeriod? {
-        val periods = hourlyForecast.value?.periods
-        if(periods != null) {
-            val currentTime = OffsetDateTime.now()
-            for(period in periods) {
-                if(currentTime >= period.startTime && currentTime <= period.endTime) {
-                    return period
-                }
+    private fun updateCurrentTimeWeatherPeriod(hourlyForecast: WeatherProperties): WeatherPeriod? {
+        val currentTime = OffsetDateTime.now()
+        for(period in hourlyForecast.periods) {
+            if(currentTime >= period.startTime && currentTime <= period.endTime) {
+                return period
             }
         }
 
@@ -128,15 +135,15 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
         var currentBlockEndTime: OffsetDateTime
         var currentHourlyPeriodIndex = 0
 
-        if(!CollectionUtils.isEmpty(generalPeriods) && !CollectionUtils.isEmpty(hourlyPeriods)) {
-            for(generalPeriod in generalPeriods) {
+        if (generalPeriods.isNotEmpty() && hourlyPeriods.isNotEmpty()) {
+            for (generalPeriod in generalPeriods) {
                 currentBlockEndTime = generalPeriod.endTime
 
                 val blockHourlyPeriods = mutableListOf<WeatherPeriod>()
-                for(j in currentHourlyPeriodIndex..<hourlyPeriods.size) {
+                for (j in currentHourlyPeriodIndex..<hourlyPeriods.size) {
                     val currentHourlyPeriod = hourlyPeriods[j]
 
-                    if(currentHourlyPeriod.startTime < currentBlockEndTime) {
+                    if (currentHourlyPeriod.startTime < currentBlockEndTime) {
                         blockHourlyPeriods.add(currentHourlyPeriod)
                     } else {
                         blocks.add(WeatherPeriodDisplayBlock(generalPeriod, blockHourlyPeriods))

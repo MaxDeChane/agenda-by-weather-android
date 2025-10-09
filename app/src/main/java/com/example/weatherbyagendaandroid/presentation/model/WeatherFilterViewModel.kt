@@ -13,9 +13,12 @@ import com.example.weatherbyagendaandroid.presentation.domain.WeatherPeriodDispl
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel.Companion.LOG_TAG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 enum class FilterStatus {
@@ -183,16 +186,22 @@ class WeatherFilterViewModel @Inject constructor(
         }
     }
 
-    fun runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlocks: List<WeatherPeriodDisplayBlock>) {
-        val currentFilterGroup = if(selectedFilterGroup.value == null) inCreationFilterGroup.value else selectedFilterGroup.value
+    suspend fun runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlocks: List<WeatherPeriodDisplayBlock>) =
+        withContext(Dispatchers.Default) {
+            val currentFilterGroup = if(selectedFilterGroup.value == null) inCreationFilterGroup.value else selectedFilterGroup.value
 
-        for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks) {
-            viewModelScope.launch {
-                weatherPeriodDisplayBlock.resetFiltered()
-                currentFilterGroup?.runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlock)
+            // Add scope here to make sure all the child coroutines finish before we continue.
+            coroutineScope {
+                for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks) {
+                    launch {
+                        weatherPeriodDisplayBlock.resetFiltered()
+                        currentFilterGroup?.runWeatherDisplayBlockThroughFilters(
+                            weatherPeriodDisplayBlock
+                        )
+                    }
+                }
             }
-        }
 
-        _filterStatus.value = FilterStatus.DONE
-    }
+            _filterStatus.value = FilterStatus.DONE
+        }
 }
