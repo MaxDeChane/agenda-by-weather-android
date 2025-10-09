@@ -14,6 +14,8 @@ class MenuViewModel @Inject constructor(): ViewModel() {
     private val _showMenu =  MutableStateFlow(false)
     val showMenu = _showMenu.asStateFlow()
 
+    // These are in the viewModel here so that if the MenuView is closed and
+    // re-opened the state of them is perserved.
     private val _showAgendaItemsExpanded =  MutableStateFlow(true)
     val showAgendaItemsExpanded = _showAgendaItemsExpanded.asStateFlow()
     private val _showWeatherFiltersExpanded =  MutableStateFlow(false)
