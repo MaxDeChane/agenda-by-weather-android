@@ -26,13 +26,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.domain.agenda.AgendaItem
 import com.example.weatherbyagendaandroid.presentation.composable.ExpandableView
-import com.example.weatherbyagendaandroid.presentation.composable.menu.DateTimeInput
+import com.example.weatherbyagendaandroid.presentation.composable.menu.datetime.DateTimeInput
 import com.example.weatherbyagendaandroid.presentation.composable.menu.SavedLocationSelectionView
 import com.example.weatherbyagendaandroid.presentation.composable.menu.WeatherFilterGroupsSelectionView
 import com.example.weatherbyagendaandroid.presentation.composable.menu.notification.NotificationPermissionAlertView
 import com.example.weatherbyagendaandroid.presentation.model.AgendaViewModel
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
 import com.example.weatherbyagendaandroid.presentation.model.PermissionsViewModel
+import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 import java.time.LocalDateTime
 
 @Composable
@@ -40,10 +41,13 @@ fun AddEditAgendaItemAlertView(
     dismiss: () -> Unit, agendaItemToEdit: AgendaItem? = null,
     locationViewModel: LocationViewModel = viewModel(),
     agendaViewModel: AgendaViewModel = viewModel(),
+    weatherViewModel: WeatherViewModel = viewModel(),
     permissionsViewModel: PermissionsViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val isEditing = agendaItemToEdit != null
+
+    val startDateNotBefore = LocalDateTime.now().plusHours(1).withMinute(0)
 
     var agendaItemName by remember {
         mutableStateOf(
@@ -56,8 +60,14 @@ fun AddEditAgendaItemAlertView(
         mutableStateOf(
             if (isEditing) {
                 agendaItemToEdit.startTime
-            } else
-                LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0)
+            } else {
+                val endPeriod = weatherViewModel.retrieveLastGeneralWeatherPeriodEndDate()
+                if(endPeriod != null) {
+                    endPeriod.toLocalDateTime()
+                } else {
+                    LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0)
+                }
+            }
         )
     }
     var endDateTime by remember {
@@ -127,8 +137,16 @@ fun AddEditAgendaItemAlertView(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    DateTimeInput(startDateTime, true) { startDateTime = it }
-                    DateTimeInput(endDateTime, false) { endDateTime = it }
+                    DateTimeInput(startDateTime, true, startDateNotBefore) {
+                        startDateTime = it
+                        // If selected startDateTime is after the endDateTime, update the
+                        // endDateTime to be after the startDateTime since it can be assumed
+                        // that is the intention of the user and time can't go backwords.
+                        if(it.isAfter(endDateTime)) {
+                            endDateTime = it.plusHours(1)
+                        }
+                    }
+                    DateTimeInput(endDateTime, false, startDateTime) { endDateTime = it }
                 }
 
                 ExpandableView("Location", locationExpanded) {

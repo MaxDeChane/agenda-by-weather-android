@@ -278,4 +278,8 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
             else -> Color.Red
         }
     }
+
+    fun retrieveLastGeneralWeatherPeriodEndDate(): OffsetDateTime? {
+        return _generalForecast.value?.periods?.last()?.endTime
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.weatherbyagendaandroid.presentation.composable.menu
+package com.example.weatherbyagendaandroid.presentation.composable.menu.datetime
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

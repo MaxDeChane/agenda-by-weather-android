@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.domain.agenda.AgendaItem
-import com.example.weatherbyagendaandroid.presentation.composable.menu.DateTimeView
+import com.example.weatherbyagendaandroid.presentation.composable.menu.datetime.DateTimeView
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
 
 @Composable
