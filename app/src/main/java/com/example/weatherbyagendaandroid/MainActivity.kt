@@ -16,9 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -48,8 +45,6 @@ class MainActivity : ComponentActivity() {
 fun WeatherScreen(menuViewModel: MenuViewModel = viewModel(),
                   permissionsViewModel: PermissionsViewModel = viewModel()) {
     val locationPermissionStatus by permissionsViewModel.systemLocationGranted.collectAsStateWithLifecycle()
-
-    var showNotificationPermissionDialog by remember { mutableStateOf(true)}
 
     when (locationPermissionStatus) {
         LocationHelper.LocationPermissionStatus.PermissionCheckInProgress -> Text("Loading")
