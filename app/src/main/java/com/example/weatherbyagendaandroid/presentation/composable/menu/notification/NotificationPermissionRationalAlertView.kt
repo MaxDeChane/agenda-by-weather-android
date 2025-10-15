@@ -7,7 +7,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 
 @Composable
-fun NotificationPermissionAlertView(onConfirmClicked: () -> Unit) {
+fun NotificationPermissionRationalAlertView(onConfirmClicked: () -> Unit) {
     AlertDialog(title = {
         Text(text = "Notification Permissions")
     },

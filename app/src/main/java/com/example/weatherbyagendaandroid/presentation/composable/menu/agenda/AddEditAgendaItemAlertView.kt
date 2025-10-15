@@ -29,7 +29,7 @@ import com.example.weatherbyagendaandroid.presentation.composable.ExpandableView
 import com.example.weatherbyagendaandroid.presentation.composable.menu.datetime.DateTimeInput
 import com.example.weatherbyagendaandroid.presentation.composable.menu.SavedLocationSelectionView
 import com.example.weatherbyagendaandroid.presentation.composable.menu.WeatherFilterGroupsSelectionView
-import com.example.weatherbyagendaandroid.presentation.composable.menu.notification.NotificationPermissionAlertView
+import com.example.weatherbyagendaandroid.presentation.composable.menu.notification.NotificationPermissionRationalAlertView
 import com.example.weatherbyagendaandroid.presentation.model.AgendaViewModel
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
 import com.example.weatherbyagendaandroid.presentation.model.PermissionsViewModel
@@ -94,14 +94,14 @@ fun AddEditAgendaItemAlertView(
         )
     }
 
-    var showNotificationAlertView by remember { mutableStateOf(false) }
+    var showNotificationPermissionRationalAlertView by remember { mutableStateOf(false) }
 
     val gpsLocation by locationViewModel.gpsLocation.collectAsStateWithLifecycle()
     val savedLocations by locationViewModel.savedLocations.collectAsStateWithLifecycle()
 
-    if(showNotificationAlertView) {
-        NotificationPermissionAlertView({
-            showNotificationAlertView = false
+    if(showNotificationPermissionRationalAlertView) {
+        NotificationPermissionRationalAlertView({
+            showNotificationPermissionRationalAlertView = false
             ActivityCompat.requestPermissions(
                 context as Activity,
                 arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
@@ -200,7 +200,7 @@ fun AddEditAgendaItemAlertView(
                                 permission
                             )
                         ) {
-                            showNotificationAlertView = true
+                            showNotificationPermissionRationalAlertView = true
                         } else {
                             ActivityCompat.requestPermissions(
                                 context,
