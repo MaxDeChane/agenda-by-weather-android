@@ -97,7 +97,6 @@ fun AddEditAgendaItemAlertView(
     var showNotificationPermissionRationalAlertView by remember { mutableStateOf(false) }
 
     val gpsLocation by locationViewModel.gpsLocation.collectAsStateWithLifecycle()
-    val savedLocations by locationViewModel.savedLocations.collectAsStateWithLifecycle()
 
     if(showNotificationPermissionRationalAlertView) {
         NotificationPermissionRationalAlertView({
@@ -154,7 +153,7 @@ fun AddEditAgendaItemAlertView(
                 }
 
                 if (locationExpanded) {
-                    SavedLocationSelectionView(selectedLocationId, savedLocations, false, {
+                    SavedLocationSelectionView(selectedLocationId, false, {
                         if (selectedLocationId == it) {
                             selectedLocationId = -1
                         } else {

@@ -31,7 +31,6 @@ fun LocationView(locationViewModel: LocationViewModel = viewModel(),
 
     val gpsLocation by locationViewModel.gpsLocation.collectAsStateWithLifecycle()
     val currentSelectedLocation by locationViewModel.selectedSavedLocation.collectAsStateWithLifecycle()
-    val savedLocations by locationViewModel.savedLocations.collectAsStateWithLifecycle()
 
     if(currentSelectedLocation != null) {
         weatherViewModel.updateWeatherInfo(currentSelectedLocation!!.latitude, currentSelectedLocation!!.longitude)
@@ -45,7 +44,7 @@ fun LocationView(locationViewModel: LocationViewModel = viewModel(),
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondary)
     ) {
-        SavedLocationSelectionView(currentSavedLocationId, savedLocations, true, { locationViewModel.selectLocation(it) })
+        SavedLocationSelectionView(currentSavedLocationId, true, { locationViewModel.selectLocation(it) })
         Row(modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
                 onClick = { showAddLocationAlertView = true },

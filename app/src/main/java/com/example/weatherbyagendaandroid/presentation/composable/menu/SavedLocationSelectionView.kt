@@ -22,17 +22,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.presentation.domain.SavedLocations
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
 
 @Composable
-fun SavedLocationSelectionView(currentSavedLocationId: Int, savedLocations: SavedLocations,
-                               isEditable: Boolean = true, selectLocation: (locationId: Int) -> Unit,
+fun SavedLocationSelectionView(currentSavedLocationId: Int, isEditable: Boolean = true,
+                               selectLocation: (locationId: Int) -> Unit,
                                locationViewModel: LocationViewModel = viewModel()) {
 
     var newLocationName by remember { mutableStateOf("") }
     var locationUnderEditName: String? by remember { mutableStateOf(null) }
+
+    val savedLocations by locationViewModel.savedLocations.collectAsStateWithLifecycle()
 
     if(savedLocations.hasSaveLocations()) {
         Column{
