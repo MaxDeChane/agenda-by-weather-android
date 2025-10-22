@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.common.api.ApiException
@@ -102,15 +101,6 @@ class LocationHelper @Inject constructor(
                 setLocationPermissionStatus(LocationPermissionStatus.CoarseLocationDenied(
                     Manifest.permission.ACCESS_COARSE_LOCATION))
             } else {
-
-                // TODO: Add this back in when set it up to run in background
-                //                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                //                            ContextCompat.checkSelfPermission(
-                //                                context,
-                //                                android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                //                            ) == PackageManager.PERMISSION_GRANTED
-                //                        } else true
-
                 try {
                     // Check if the device has location settings on
                     val response =
