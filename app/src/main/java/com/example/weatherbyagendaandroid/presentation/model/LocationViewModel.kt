@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.weatherbyagendaandroid.config.CityDatabase
 import com.example.weatherbyagendaandroid.dao.SavedLocationsDao
 import com.example.weatherbyagendaandroid.dao.entites.City
+import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
 import com.example.weatherbyagendaandroid.helpers.LocationHelper
 import com.example.weatherbyagendaandroid.presentation.domain.SavedLocation
 import com.example.weatherbyagendaandroid.presentation.domain.SavedLocations
@@ -26,6 +27,9 @@ class LocationViewModel @Inject constructor(
     private val cityDatabase: CityDatabase,
     private val savedLocationsDao: SavedLocationsDao
 ): ViewModel() {
+
+    private val _loadingStatus = MutableStateFlow(LoadingStatusEnum.LOADING)
+    val loadingStatus = _loadingStatus.asStateFlow()
 
     private val _gpsLocation = MutableStateFlow<Location?>(null)
     val gpsLocation = _gpsLocation.asStateFlow()
@@ -54,6 +58,8 @@ class LocationViewModel @Inject constructor(
             if(loadedLocations != null && loadedLocations.hasSaveLocations()) {
                 _savedLocations.value = loadedLocations
             }
+
+            _loadingStatus.value = LoadingStatusEnum.DONE
         }
     }
 

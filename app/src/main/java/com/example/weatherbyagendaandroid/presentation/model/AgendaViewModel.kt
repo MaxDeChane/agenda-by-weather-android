@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.weatherbyagendaandroid.dao.SavedAgendaItemsDao
 import com.example.weatherbyagendaandroid.domain.agenda.AgendaItem
 import com.example.weatherbyagendaandroid.domain.agenda.AgendaItems
+import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,9 @@ class AgendaViewModel @Inject constructor(
     private val savedAgendaItemsDao: SavedAgendaItemsDao
 ): ViewModel() {
 
-    private val _agendaItems =  MutableStateFlow(AgendaItems())
+    private val _loadingStatus = MutableStateFlow(LoadingStatusEnum.LOADING)
+    val loadingStatus = _loadingStatus.asStateFlow()
+    private val _agendaItems = MutableStateFlow(AgendaItems())
     val agendaItems = _agendaItems.asStateFlow()
 
     init {
@@ -30,6 +33,8 @@ class AgendaViewModel @Inject constructor(
             if(agendaItems != null && agendaItems.hasItems()) {
                 _agendaItems.value = agendaItems
             }
+
+            _loadingStatus.value = LoadingStatusEnum.DONE
         }
     }
 

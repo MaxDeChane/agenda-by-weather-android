@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherbyagendaandroid.dao.WeatherFilterGroupsDao
+import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilter
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroup
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroupEditHolder
@@ -31,6 +32,9 @@ class WeatherFilterViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val weatherFilterGroupsDao: WeatherFilterGroupsDao): ViewModel() {
 
+    private val _loadingStatus = MutableStateFlow(LoadingStatusEnum.LOADING)
+    val loadingStatus = _loadingStatus.asStateFlow()
+
     private val _filterStatus = MutableStateFlow(FilterStatus.DONE)
     val filterStatus = _filterStatus.asStateFlow()
 
@@ -54,6 +58,8 @@ class WeatherFilterViewModel @Inject constructor(
             if(loadedWeatherFilterGroups != null && loadedWeatherFilterGroups.filterGroups.isNotEmpty()) {
                 _weatherFilterGroups.value = loadedWeatherFilterGroups
             }
+
+            _loadingStatus.value = LoadingStatusEnum.DONE
         }
     }
 
@@ -204,4 +210,8 @@ class WeatherFilterViewModel @Inject constructor(
 
             _filterStatus.value = FilterStatus.DONE
         }
+
+    fun setWeatherFilterStatusToInProgress() {
+        _filterStatus.value = FilterStatus.IN_PROGRESS
+    }
 }

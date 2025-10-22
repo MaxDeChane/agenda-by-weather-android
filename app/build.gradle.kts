@@ -68,11 +68,13 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.common)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
     implementation(libs.play.services.maps)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit.jupiter)
     ksp(libs.hilt.android.annotation)
+    ksp(libs.androidx.hilt.compiler)
 
     implementation(libs.nanohttpd)
 

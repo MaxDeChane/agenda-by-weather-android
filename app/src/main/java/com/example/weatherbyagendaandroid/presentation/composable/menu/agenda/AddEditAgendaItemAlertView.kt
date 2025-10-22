@@ -1,6 +1,7 @@
 package com.example.weatherbyagendaandroid.presentation.composable.menu.agenda
 
 import android.app.Activity
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.weatherbyagendaandroid.domain.agenda.AgendaItem
 import com.example.weatherbyagendaandroid.presentation.composable.ExpandableView
 import com.example.weatherbyagendaandroid.presentation.composable.menu.datetime.DateTimeInput
@@ -34,7 +38,9 @@ import com.example.weatherbyagendaandroid.presentation.model.AgendaViewModel
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
 import com.example.weatherbyagendaandroid.presentation.model.PermissionsViewModel
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
+import com.example.weatherbyagendaandroid.worker.AgendaItemWorker
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun AddEditAgendaItemAlertView(
@@ -192,6 +198,8 @@ fun AddEditAgendaItemAlertView(
                     )
                     agendaViewModel.addAgendaItem(agendaItem)
 
+                    setupAgendaItemWork(context)
+
                     if (!permissionsViewModel.checkNotificationPermissions(context)) {
                         val permission = android.Manifest.permission.POST_NOTIFICATIONS
                         if (ActivityCompat.shouldShowRequestPermissionRationale(
@@ -225,4 +233,20 @@ fun AddEditAgendaItemAlertView(
                 Text("Cancel")
             }
         })
+}
+
+private fun setupAgendaItemWork(context: Context) {
+    val agendaItemWork = PeriodicWorkRequestBuilder<AgendaItemWorker>(
+        10, TimeUnit.MINUTES,
+        5, TimeUnit.MINUTES // optional flex interval
+    )
+        // TODO: add this back in after testing things out.
+        //.setInitialDelay(1, TimeUnit.HOURS)
+        .build()
+
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        "AgendaItemWork", // unique name for this kind of work
+        ExistingPeriodicWorkPolicy.REPLACE, // or REPLACE
+        agendaItemWork
+    )
 }

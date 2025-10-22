@@ -18,6 +18,7 @@ import com.example.weatherbyagendaandroid.presentation.domain.WeatherPeriodDispl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +32,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(@ApplicationContext private val context: Context,
-                                           locationHelper: LocationHelper,
+                                           private val locationHelper: LocationHelper,
                                            private val weatherRepository: WeatherRepository): ViewModel() {
 
    companion object {
@@ -53,7 +54,18 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
     private val _weatherPeriodDisplayBlocks = MutableStateFlow<List<WeatherPeriodDisplayBlock>?>(null)
     val weatherPeriodDisplayBlocks = _weatherPeriodDisplayBlocks.asStateFlow()
 
-    init {
+//    init {
+//        viewModelScope.launch {
+//            locationHelper.retrieveCurrentLocation({ location ->
+//                updateWeatherInfo(location.latitude, location.longitude)
+//            }) {
+//                // Reload activity. This will kick off the prompting for access.
+//                (context as Activity).recreate()
+//            }
+//        }
+//    }
+
+    fun updateWeatherInfoUsingCurrentLocation() {
         viewModelScope.launch {
             locationHelper.retrieveCurrentLocation({ location ->
                 updateWeatherInfo(location.latitude, location.longitude)
@@ -64,8 +76,8 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
         }
     }
 
-    fun updateWeatherInfo(latitude: Double, longitude: Double) {
-        viewModelScope.launch(Dispatchers.Default) {
+    fun updateWeatherInfo(latitude: Double, longitude: Double): Job {
+        return viewModelScope.launch(Dispatchers.Default) {
             // Retrieve the oldGridId if it exists to compare against
             // the new one since if they are different it is known that
             // the forecast will need to be updated since a new location

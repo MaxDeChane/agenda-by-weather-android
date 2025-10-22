@@ -1,8 +1,7 @@
 package com.example.weatherbyagendaandroid.presentation.domain
 
-import com.google.android.gms.common.util.CollectionUtils
+import com.example.weatherbyagendaandroid.dao.domain.WeatherPeriod
 import com.squareup.moshi.JsonClass
-import kotlin.random.Random
 
 @JsonClass(generateAdapter = true)
 data class WeatherFilterGroup(val id: Int = -1, var name: String = "",
@@ -87,6 +86,13 @@ data class WeatherFilterGroup(val id: Int = -1, var name: String = "",
             } else if(anyHourlyPeriodsFiltered) {
                 weatherPeriodDisplayBlock.isPartialBlockFiltered = true
             }
+        }
+    }
+
+    fun findFirstMatchingWeatherPeriod(weatherPeriods: List<WeatherPeriod>): WeatherPeriod? {
+        return weatherPeriods.find { weatherPeriod ->
+            // Find the first one that doesn't match the filter
+            filtersByName.values.any { !it.filter(weatherPeriod) }
         }
     }
 }

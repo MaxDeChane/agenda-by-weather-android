@@ -42,6 +42,7 @@ import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 @Composable
 fun WeatherGeneralHourlyPeriodsView(
     innerPadding: PaddingValues,
+    loadFromIntent: Boolean,
     weatherFilterViewModel: WeatherFilterViewModel = viewModel(),
     weatherViewModel: WeatherViewModel = viewModel()
 ) {
@@ -51,7 +52,24 @@ fun WeatherGeneralHourlyPeriodsView(
     val filterStatus by weatherFilterViewModel.filterStatus.collectAsStateWithLifecycle()
     var refreshKey by remember { mutableStateOf(false) }
 
-    LaunchedEffect(filterStatus.name + System.identityHashCode(weatherPeriodDisplayBlocks)) {
+    // Run the weather periods through the filters whenever the weather periods change due
+    // to location change or just weather update.
+    LaunchedEffect(weatherPeriodDisplayBlocks) {
+        if(weatherPeriodDisplayBlocks != null) {
+            weatherFilterViewModel.runWeatherDisplayBlockThroughFilters(
+                weatherPeriodDisplayBlocks!!
+            )
+            refreshKey = !refreshKey
+        } else if(!loadFromIntent) {
+            // If the weatherPeriodDisplayBlocks is null and not being loaded from the intent
+            // then just load it using the current location of the phone.
+            weatherViewModel.updateWeatherInfoUsingCurrentLocation()
+        }
+    }
+
+    // Run weatherPeriods through the selected filters whenever the filter status is changed
+    // and in progress.
+    LaunchedEffect(filterStatus.name) {
         if(weatherPeriodDisplayBlocks != null) {
             if (filterStatus == FilterStatus.IN_PROGRESS) {
                 weatherFilterViewModel.runWeatherDisplayBlockThroughFilters(
