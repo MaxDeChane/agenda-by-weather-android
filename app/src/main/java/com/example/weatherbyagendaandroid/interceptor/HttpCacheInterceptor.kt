@@ -6,6 +6,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 
 class HttpCacheInterceptor (private val cacheStore: HttpCacheStore) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -31,7 +32,7 @@ class HttpCacheInterceptor (private val cacheStore: HttpCacheStore) : Intercepto
                 cacheStore.save(url, bodyString, response.header("Last-Modified"))
                 // Create new response body for Retrofit to consume
                 response.newBuilder()
-                    .body(ResponseBody.create(response.body?.contentType(), bodyString))
+                    .body(bodyString.toResponseBody(response.body?.contentType()))
                     .build()
             }
             304 -> {
@@ -42,7 +43,7 @@ class HttpCacheInterceptor (private val cacheStore: HttpCacheStore) : Intercepto
                     .protocol(Protocol.HTTP_1_1)
                     .code(200)
                     .message("OK (from cache)")
-                    .body(ResponseBody.create("application/json".toMediaType(), cachedBody))
+                    .body(cachedBody.toResponseBody("application/json".toMediaType()))
                     .build()
             }
             else -> response
