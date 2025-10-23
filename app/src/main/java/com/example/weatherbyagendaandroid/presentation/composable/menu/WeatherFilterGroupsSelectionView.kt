@@ -86,7 +86,9 @@ fun WeatherFilterGroupsSelectionView(currentFilterGroupId: Int, isEditable: Bool
                         }
 
                         if (isEditing && inEditWeatherFilterGroups.containsKey(filterGroupEntry.key)) {
-                            EditWeatherFilterGroupView(filterGroupEntry.key, { isEditing = false })
+                            EditWeatherFilterGroupView(filterGroupEntry.key,
+                                inEditWeatherFilterGroups[filterGroupEntry.key]!!.weatherFilterGroupToEdit,
+                                { isEditing = false })
                         }
                     }
                 }
