@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,9 +33,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.MapActivity
 import com.example.weatherbyagendaandroid.R
+import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
 import com.example.weatherbyagendaandroid.presentation.model.MenuViewModel
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,12 +43,8 @@ fun WeatherTopBar(
     weatherViewModel: WeatherViewModel = viewModel(),
     menuViewModel: MenuViewModel = viewModel()
 ) {
-    val weatherPeriod by weatherViewModel.currentTimeWeatherPeriod.collectAsStateWithLifecycle()
-    val weatherGridPoints by weatherViewModel.weatherGridPoints.collectAsStateWithLifecycle()
-
     // these will be resolved before this composable is loaded
-    val relativeLocation = weatherGridPoints?.properties?.relativeLocation?.properties
-    val icon: Int = if(weatherPeriod != null) weatherPeriod!!.icon else R.drawable.ic_broken_image
+    val weatherLoadingStatus by weatherViewModel.weatherLoadingStatus.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -59,35 +54,39 @@ fun WeatherTopBar(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = if (relativeLocation == null) "Loading" else "${relativeLocation.city}, ${relativeLocation.state}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (weatherPeriod == null) {
+                if(weatherLoadingStatus == LoadingStatusEnum.LOADING) {
                     Text(
                         text = "Loading",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Normal
-                        ),
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 14.sp
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 } else {
+                    val cityState = weatherViewModel.weatherInfo?.displayName
+                    val currentTimeWeatherPeriod = weatherViewModel.weatherInfo?.currentTimeWeatherPeriod
+                    val icon: Int = currentTimeWeatherPeriod?.icon ?: R.drawable.ic_broken_image
+
+                    Text(
+                        text = cityState ?: "Error",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             painter = painterResource(id = icon),
-                            contentDescription = weatherPeriod?.shortForecast,
+                            contentDescription = currentTimeWeatherPeriod?.shortForecast ?: "Error Loading",
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier
                                 .padding(end = 4.dp)
                         )
                         Text(
-                            text = "${weatherPeriod?.temperature} - ${weatherPeriod?.shortForecast}",
+                            text = if(currentTimeWeatherPeriod != null) "${currentTimeWeatherPeriod.temperature} - ${currentTimeWeatherPeriod.shortForecast}"
+                                else "Error Loading",
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 fontWeight = FontWeight.Normal
                             ),
