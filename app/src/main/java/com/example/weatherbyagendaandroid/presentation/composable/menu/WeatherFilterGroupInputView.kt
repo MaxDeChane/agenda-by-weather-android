@@ -44,7 +44,7 @@ fun WeatherFilterGroupInputView(currentWeatherFilterGroup: WeatherFilterGroup,
     val windRangeFilter = currentWeatherFilterGroup.retrieveWeatherFilter(WindFilter::class.simpleName!!) as WindFilter
     val weatherKeywordFilter = currentWeatherFilterGroup.retrieveWeatherFilter(WeatherKeywordFilter::class.simpleName!!) as WeatherKeywordFilter
 
-    // Used for filters that require typing to try and mitigate
+    // Used for filters that require typing to try and mitigate unnecessary update and renders.
     var debounceJob: Job? = null
 
     Column(
