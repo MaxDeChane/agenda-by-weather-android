@@ -200,7 +200,6 @@ class WeatherFilterViewModel @Inject constructor(
             coroutineScope {
                 for (weatherPeriodDisplayBlock in weatherPeriodDisplayBlocks) {
                     launch {
-                        weatherPeriodDisplayBlock.resetFiltered()
                         currentFilterGroup?.runWeatherDisplayBlockThroughFilters(
                             weatherPeriodDisplayBlock
                         )
@@ -210,8 +209,4 @@ class WeatherFilterViewModel @Inject constructor(
 
             _filterStatus.value = FilterStatus.DONE
         }
-
-    fun setWeatherFilterStatusToInProgress() {
-        _filterStatus.value = FilterStatus.IN_PROGRESS
-    }
 }
