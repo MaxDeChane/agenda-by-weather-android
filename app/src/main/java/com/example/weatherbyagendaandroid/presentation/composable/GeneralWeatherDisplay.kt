@@ -29,22 +29,8 @@ fun GeneralWeatherDisplay(innerPadding: PaddingValues,
                           weatherViewModel: WeatherViewModel = viewModel()) {
 
     val weatherLoadingStatus by weatherViewModel.weatherLoadingStatus.collectAsStateWithLifecycle()
-    val selectedLocationLatLon by weatherViewModel.selectedLocationLatLon.collectAsStateWithLifecycle()
     val filterStatus by weatherFilterViewModel.filterStatus.collectAsStateWithLifecycle()
     var refreshKey by remember { mutableStateOf(false) }
-
-    LaunchedEffect(selectedLocationLatLon) {
-        when(selectedLocationLatLon) {
-            SelectedMenuOptionsRepository.LocationLatLon.GpsLatLon -> weatherViewModel.updateWeatherInfoUsingCurrentLocation()
-            is SelectedMenuOptionsRepository.LocationLatLon.SavedLocationLatLon -> {
-                val typedSelectedLatLon = selectedLocationLatLon as SelectedMenuOptionsRepository.LocationLatLon.SavedLocationLatLon
-                weatherViewModel.updateWeatherInfo(typedSelectedLatLon.latitude, typedSelectedLatLon.longitude)
-            }
-        }
-        if(selectedLocationLatLon == SelectedMenuOptionsRepository.LocationLatLon.GpsLatLon) {
-            weatherViewModel.updateWeatherInfoUsingCurrentLocation()
-        }
-    }
 
     // Run weatherPeriods through the selected filters whenever the filter status is changed
     // and in progress.

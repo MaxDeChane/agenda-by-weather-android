@@ -32,11 +32,22 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
     private val _weatherLoadingStatus = MutableStateFlow(LoadingStatusEnum.LOADING)
     val weatherLoadingStatus = _weatherLoadingStatus.asStateFlow()
 
-    val selectedLocationLatLon = selectedMenuOptionsRepository.selectedLocationLatLon
-
     var weatherInfo: WeatherInfo? = null
 
     private var weatherUpdateJob: Job? = null
+
+    init{
+        viewModelScope.launch {
+            selectedMenuOptionsRepository.selectedLocationLatLon.collect {selectedLocationLatLon ->
+                when(selectedLocationLatLon) {
+                    SelectedMenuOptionsRepository.LocationLatLon.GpsLatLon -> updateWeatherInfoUsingCurrentLocation()
+                    is SelectedMenuOptionsRepository.LocationLatLon.SavedLocationLatLon -> {
+                        updateWeatherInfo(selectedLocationLatLon.latitude, selectedLocationLatLon.longitude)
+                    }
+                }
+            }
+        }
+    }
 
     fun updateWeatherInfoUsingCurrentLocation() {
         viewModelScope.launch {
