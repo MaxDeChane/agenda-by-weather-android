@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.weatherbyagendaandroid.dao.repository.SelectedMenuOptionsRepository
 import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
 import com.example.weatherbyagendaandroid.presentation.model.FilterStatus
 import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewModel
@@ -28,28 +29,21 @@ fun GeneralWeatherDisplay(innerPadding: PaddingValues,
                           weatherViewModel: WeatherViewModel = viewModel()) {
 
     val weatherLoadingStatus by weatherViewModel.weatherLoadingStatus.collectAsStateWithLifecycle()
+    val selectedLocationLatLon by weatherViewModel.selectedLocationLatLon.collectAsStateWithLifecycle()
     val filterStatus by weatherFilterViewModel.filterStatus.collectAsStateWithLifecycle()
     var refreshKey by remember { mutableStateOf(false) }
-    val isFirstTimeThrough = remember { mutableListOf(true) }
 
-    // Run the weather periods through the filters whenever the weather periods change due
-    // to location change or just weather update.
-    LaunchedEffect(weatherLoadingStatus) {
-        // If this is the first time loading this view then load up the weather info with the
-        // current location.
-        if(isFirstTimeThrough[0]) {
+    LaunchedEffect(selectedLocationLatLon) {
+        when(selectedLocationLatLon) {
+            SelectedMenuOptionsRepository.LocationLatLon.GpsLatLon -> weatherViewModel.updateWeatherInfoUsingCurrentLocation()
+            is SelectedMenuOptionsRepository.LocationLatLon.SavedLocationLatLon -> {
+                val typedSelectedLatLon = selectedLocationLatLon as SelectedMenuOptionsRepository.LocationLatLon.SavedLocationLatLon
+                weatherViewModel.updateWeatherInfo(typedSelectedLatLon.latitude, typedSelectedLatLon.longitude)
+            }
+        }
+        if(selectedLocationLatLon == SelectedMenuOptionsRepository.LocationLatLon.GpsLatLon) {
             weatherViewModel.updateWeatherInfoUsingCurrentLocation()
-            isFirstTimeThrough[0] = false
         }
-
-        // Done run through the filters the first time since there won't be any set yet.
-        if(weatherLoadingStatus == LoadingStatusEnum.DONE && weatherViewModel.weatherInfo?.weatherPeriodDisplayBlocks != null) {
-            weatherFilterViewModel.runWeatherDisplayBlockThroughFilters(
-                weatherViewModel.weatherInfo!!.weatherPeriodDisplayBlocks
-            )
-            refreshKey = !refreshKey
-        }
-
     }
 
     // Run weatherPeriods through the selected filters whenever the filter status is changed

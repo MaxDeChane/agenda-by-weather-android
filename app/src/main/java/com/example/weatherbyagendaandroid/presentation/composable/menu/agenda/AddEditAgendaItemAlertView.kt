@@ -23,16 +23,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.weatherbyagendaandroid.domain.agenda.AgendaItem
 import com.example.weatherbyagendaandroid.presentation.composable.ExpandableView
-import com.example.weatherbyagendaandroid.presentation.composable.menu.datetime.DateTimeInput
 import com.example.weatherbyagendaandroid.presentation.composable.menu.SavedLocationSelectionView
 import com.example.weatherbyagendaandroid.presentation.composable.menu.WeatherFilterGroupsSelectionView
+import com.example.weatherbyagendaandroid.presentation.composable.menu.datetime.DateTimeInput
 import com.example.weatherbyagendaandroid.presentation.composable.menu.notification.NotificationPermissionRationalAlertView
 import com.example.weatherbyagendaandroid.presentation.model.AgendaViewModel
 import com.example.weatherbyagendaandroid.presentation.model.LocationViewModel
@@ -101,8 +100,6 @@ fun AddEditAgendaItemAlertView(
     }
 
     var showNotificationPermissionRationalAlertView by remember { mutableStateOf(false) }
-
-    val gpsLocation by locationViewModel.gpsLocation.collectAsStateWithLifecycle()
 
     if(showNotificationPermissionRationalAlertView) {
         NotificationPermissionRationalAlertView({

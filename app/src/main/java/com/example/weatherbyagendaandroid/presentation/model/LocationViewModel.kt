@@ -1,15 +1,13 @@
 package com.example.weatherbyagendaandroid.presentation.model
 
-import android.app.Activity
 import android.content.Context
-import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherbyagendaandroid.config.CityDatabase
 import com.example.weatherbyagendaandroid.dao.SavedLocationsDao
 import com.example.weatherbyagendaandroid.dao.entites.City
+import com.example.weatherbyagendaandroid.dao.repository.SelectedMenuOptionsRepository
 import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
-import com.example.weatherbyagendaandroid.helpers.LocationHelper
 import com.example.weatherbyagendaandroid.presentation.domain.SavedLocation
 import com.example.weatherbyagendaandroid.presentation.domain.SavedLocations
 import com.google.android.gms.common.util.CollectionUtils
@@ -23,16 +21,13 @@ import javax.inject.Inject
 @HiltViewModel
 class LocationViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    locationHelper: LocationHelper,
     private val cityDatabase: CityDatabase,
-    private val savedLocationsDao: SavedLocationsDao
+    private val savedLocationsDao: SavedLocationsDao,
+    private val selectedMenuOptionsRepository: SelectedMenuOptionsRepository
 ): ViewModel() {
 
     private val _loadingStatus = MutableStateFlow(LoadingStatusEnum.LOADING)
     val loadingStatus = _loadingStatus.asStateFlow()
-
-    private val _gpsLocation = MutableStateFlow<Location?>(null)
-    val gpsLocation = _gpsLocation.asStateFlow()
 
     private val _selectedSavedLocation = MutableStateFlow<SavedLocation?>(null)
     val selectedSavedLocation = _selectedSavedLocation.asStateFlow()
@@ -44,13 +39,6 @@ class LocationViewModel @Inject constructor(
     val savedLocations = _savedLocations.asStateFlow()
 
     init {
-        locationHelper.retrieveCurrentLocation({location ->
-            _gpsLocation.value = location
-        }){
-            // Reload activity. This will kick off the prompting for access.
-            (context as Activity).recreate()
-        }
-
         viewModelScope.launch {
             val loadedLocations =
                 savedLocationsDao.retrieveLocations(context)
@@ -85,17 +73,28 @@ class LocationViewModel @Inject constructor(
     }
 
     fun selectLocation(locationId: Int) {
-        if(selectedSavedLocation.value == null ||
-            selectedSavedLocation.value!!.id != locationId) {
-            _selectedSavedLocation.value = savedLocations.value.retrieveLocation(locationId)
+        if (selectedSavedLocation.value == null ||
+            selectedSavedLocation.value!!.id != locationId
+        ) {
+            val selectedLocation = savedLocations.value.retrieveLocation(locationId)
+            _selectedSavedLocation.value = selectedLocation
+            // Set the selected lat lon to be used to retrieve and display weather info
+            selectedMenuOptionsRepository.setSelectedLocationLatLon(
+                SelectedMenuOptionsRepository.LocationLatLon.SavedLocationLatLon(
+                    selectedLocation.latitude,
+                    selectedLocation.longitude
+                )
+            )
         } else {
             _selectedSavedLocation.value = null
+            selectedMenuOptionsRepository.setSelectedLocationLatLon(SelectedMenuOptionsRepository.LocationLatLon.GpsLatLon)
         }
     }
 
     fun addSavedLocation(location: SavedLocation) {
-        _selectedSavedLocation.value = location
-        _savedLocations.value = savedLocations.value.addLocation(location)
+        val savedLocation = savedLocations.value.addLocation(location)
+        _savedLocations.value = _savedLocations.value.copy(_locations = _savedLocations.value.locations.toMutableMap())
+        selectLocation(savedLocation.id)
         _cityOptions.value = listOf()
 
         viewModelScope.launch {
@@ -106,7 +105,7 @@ class LocationViewModel @Inject constructor(
     fun deleteSavedLocation(locationId: Int) {
         _savedLocations.value = savedLocations.value.deleteLocation(locationId)
         if(_selectedSavedLocation.value?.id == locationId) {
-            _selectedSavedLocation.value = null
+            selectLocation(locationId)
         }
 
         viewModelScope.launch {
