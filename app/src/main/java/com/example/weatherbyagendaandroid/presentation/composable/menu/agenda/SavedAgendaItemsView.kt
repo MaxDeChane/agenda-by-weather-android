@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +28,7 @@ import com.example.weatherbyagendaandroid.domain.agenda.AgendaItems
 import com.example.weatherbyagendaandroid.presentation.model.AgendaViewModel
 
 @Composable
-fun ExistingAgendaItemsView(agendaViewModel: AgendaViewModel = viewModel()
+fun SavedAgendaItemsView(agendaViewModel: AgendaViewModel = viewModel()
 ) {
     var expandedAgendaItems by remember { mutableStateOf(AgendaItems()) }
     var inEditAgendaItem by remember { mutableStateOf<AgendaItem?>(null) }
@@ -57,10 +59,17 @@ fun ExistingAgendaItemsView(agendaViewModel: AgendaViewModel = viewModel()
                                 expandAgendaItemInfo(agendaItem)
                             }
                     ) {
-                        Text(
-                            text = agendaItem.name,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+//                        RadioButton(
+//                            selected = currentSavedLocationId == id,
+//                            onClick = { selectLocation(id) },
+//                            colors = RadioButtonDefaults.colors(
+//                                selectedColor = MaterialTheme.colorScheme.primary
+//                            )
+//                        )
+//                        Text(
+//                            text = agendaItem.name,
+//                            style = MaterialTheme.typography.bodyLarge
+//                        )
                     }
                     Row(
                         horizontalArrangement = Arrangement.End,

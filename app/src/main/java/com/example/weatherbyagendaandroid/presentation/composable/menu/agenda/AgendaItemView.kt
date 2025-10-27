@@ -26,7 +26,7 @@ fun AgendaItemView() {
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondary)
     ) {
-        ExistingAgendaItemsView()
+        SavedAgendaItemsView()
         OutlinedButton(
             onClick = { showAddAgendaItemAlertView = true },
             colors = ButtonDefaults.outlinedButtonColors(
