@@ -1,5 +1,6 @@
 package com.example.weatherbyagendaandroid.dao.repository
 
+import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroup
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
@@ -17,7 +18,22 @@ class SelectedMenuOptionsRepository @Inject constructor() {
     private val _selectedLocationLatLon = MutableStateFlow<LocationLatLon>(LocationLatLon.GpsLatLon)
     val selectedLocationLatLon = _selectedLocationLatLon.asStateFlow()
 
+    // Holds the current filter group being created.
+    private val _adhocFilterGroup = MutableStateFlow(WeatherFilterGroup())
+    val adhocFilterGroup = _adhocFilterGroup.asStateFlow()
+
+    private val _currentWeatherFilterGroup = MutableStateFlow(WeatherFilterGroup())
+    val currentWeatherFilterGroup = _currentWeatherFilterGroup.asStateFlow()
+
     fun setSelectedLocationLatLon(locationLatLong: LocationLatLon) {
         _selectedLocationLatLon.value = locationLatLong
+    }
+
+    fun setAdhocWeatherFilterGroup(weatherFilterGroup: WeatherFilterGroup) {
+        _adhocFilterGroup.value = weatherFilterGroup
+    }
+
+    fun setCurrentWeatherFilterGroup(weatherFilterGroup: WeatherFilterGroup) {
+        _currentWeatherFilterGroup.value = weatherFilterGroup
     }
 }

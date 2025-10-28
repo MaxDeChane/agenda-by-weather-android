@@ -15,7 +15,7 @@ import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewMo
 fun CreateNewWeatherFilterGroupView(menuViewModel: MenuViewModel = viewModel(), weatherFilterViewModel: WeatherFilterViewModel = viewModel()) {
 
     var showNameFilterGroupAlertView by remember { mutableStateOf(false) }
-    val inCreationFilterGroup by weatherFilterViewModel.inCreationFilterGroup.collectAsStateWithLifecycle()
+    val inCreationFilterGroup by weatherFilterViewModel.adhocWeatherFilterGroup.collectAsStateWithLifecycle()
     val showWeatherFilterGroupsExpanded by menuViewModel.showWeatherFilterGroupsExpanded.collectAsStateWithLifecycle()
 
     fun handleSave(filterGroupName: String) {

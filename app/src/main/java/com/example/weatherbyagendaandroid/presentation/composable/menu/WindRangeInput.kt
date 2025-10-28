@@ -33,7 +33,7 @@ fun WindRangeInput(
     var minWindSpeedText by remember { mutableStateOf(if(windRangeFilter.lowerWindSpeed == -1) "" else windRangeFilter.lowerWindSpeed.toString()) }
     var maxWindSpeedText by remember { mutableStateOf(if(windRangeFilter.higherWindSpeed == Int.MAX_VALUE) "" else windRangeFilter.higherWindSpeed.toString()) }
 
-    if(clear || weatherFilterViewModel.hasSelectedWeatherFilterGroup()) {
+    if(clear) {
         minWindSpeedText = ""
         maxWindSpeedText = ""
     }

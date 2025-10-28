@@ -9,9 +9,7 @@ import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewMo
 @Composable
 fun WeatherFilterGroupsMenuView(weatherFilterViewModel: WeatherFilterViewModel = viewModel()) {
 
-    val currentFilterGroup by weatherFilterViewModel.selectedFilterGroup.collectAsStateWithLifecycle()
+    val currentFilterGroup by weatherFilterViewModel.currentWeatherFilterGroup.collectAsStateWithLifecycle()
 
-    val filterGroupId = if(currentFilterGroup != null) currentFilterGroup!!.id else -1
-
-    WeatherFilterGroupsSelectionView(filterGroupId, true, weatherFilterViewModel::selectWeatherFilterGroup)
+    WeatherFilterGroupsSelectionView(currentFilterGroup.id, true, weatherFilterViewModel::selectWeatherFilterGroup)
 }

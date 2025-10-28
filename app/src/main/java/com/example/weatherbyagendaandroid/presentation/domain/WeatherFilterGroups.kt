@@ -45,12 +45,12 @@ data class WeatherFilterGroups(val filterGroups: Map<Int, WeatherFilterGroup> = 
         return this
     }
 
-    fun retrieveWeatherFilterGroup(filterGroupId: Int): WeatherFilterGroup? {
+    fun retrieveWeatherFilterGroup(filterGroupId: Int): WeatherFilterGroup {
         if(filterGroups.containsKey(filterGroupId)) {
             return filterGroups[filterGroupId]!!
         }
 
         Log.e(LOG_TAG, "$filterGroupId does not exist. This should not happen")
-        return null
+        return WeatherFilterGroup()
     }
 }

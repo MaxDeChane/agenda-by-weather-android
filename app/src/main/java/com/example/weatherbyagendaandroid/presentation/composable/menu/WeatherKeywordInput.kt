@@ -44,7 +44,7 @@ fun WeatherKeywordInput(
     var customKeywordOptions by remember { mutableStateOf(setOf<String>()) }
     var customKeyword by remember { mutableStateOf("") }
 
-    if(clear || weatherFilterViewModel.hasSelectedWeatherFilterGroup()) {
+    if(clear) {
         currentDefaultSelectedKeywords = setOf()
         currentCustomSelectedKeywords = setOf()
         customKeywordOptions = setOf()

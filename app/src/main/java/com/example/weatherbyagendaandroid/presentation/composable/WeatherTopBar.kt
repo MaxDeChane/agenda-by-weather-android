@@ -33,8 +33,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.MapActivity
 import com.example.weatherbyagendaandroid.R
-import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
 import com.example.weatherbyagendaandroid.presentation.model.MenuViewModel
+import com.example.weatherbyagendaandroid.presentation.model.WeatherDataStateEnum
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +44,7 @@ fun WeatherTopBar(
     menuViewModel: MenuViewModel = viewModel()
 ) {
     // these will be resolved before this composable is loaded
-    val weatherLoadingStatus by weatherViewModel.weatherLoadingStatus.collectAsStateWithLifecycle()
+    val weatherLoadingStatus by weatherViewModel.weatherLoadingState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -54,7 +54,7 @@ fun WeatherTopBar(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if(weatherLoadingStatus == LoadingStatusEnum.LOADING) {
+                if(weatherLoadingStatus == WeatherDataStateEnum.LOADING) {
                     Text(
                         text = "Loading",
                         style = MaterialTheme.typography.titleMedium,

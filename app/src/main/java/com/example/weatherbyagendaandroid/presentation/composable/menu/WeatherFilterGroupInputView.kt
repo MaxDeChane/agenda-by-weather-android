@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.presentation.composable.ExpandableView
 import com.example.weatherbyagendaandroid.presentation.composable.SecondaryThemedButtons
@@ -57,7 +56,7 @@ fun WeatherFilterGroupInputView(currentWeatherFilterGroup: WeatherFilterGroup,
             temperatureRangeFilter,
             { updatedLowerTemp, updatedHigherTemp ->
                 debounceJob?.cancel()
-                weatherFilterViewModel.clearSelectedWeatherFilterGroup()
+                weatherFilterViewModel.clearCurrentWeatherFilterGroup()
                 debounceJob = CoroutineScope(Dispatchers.Main).launch {
                     // Wait to make sure user is done inputting to help avoid
                     // unnecessary renders of the screen.
@@ -84,7 +83,7 @@ fun WeatherFilterGroupInputView(currentWeatherFilterGroup: WeatherFilterGroup,
             windRangeFilter,
             { updatedLowerWindSpeed, updatedHigherWindSpeed ->
                 debounceJob?.cancel()
-                weatherFilterViewModel.clearSelectedWeatherFilterGroup()
+                weatherFilterViewModel.clearCurrentWeatherFilterGroup()
                 debounceJob = CoroutineScope(Dispatchers.Main).launch {
                     // Wait to make sure user is done inputting to help avoid
                     // unnecessary renders of the screen.
@@ -102,7 +101,7 @@ fun WeatherFilterGroupInputView(currentWeatherFilterGroup: WeatherFilterGroup,
             WeatherKeywordInput(
                 weatherKeywordFilter,
                 { updatedDefaultSelectedKeywords ->
-                    weatherFilterViewModel.clearSelectedWeatherFilterGroup()
+                    weatherFilterViewModel.clearCurrentWeatherFilterGroup()
                     // No delay needed here since user action should reflect immediately
                     if(updatedDefaultSelectedKeywords.isEmpty() && weatherKeywordFilter.customSelectedKeywords.isEmpty()) {
                         weatherFilterViewModel.removeWeatherFilter(WeatherKeywordFilter::class.simpleName!!, currentWeatherFilterGroup.id)
@@ -119,7 +118,7 @@ fun WeatherFilterGroupInputView(currentWeatherFilterGroup: WeatherFilterGroup,
                     Log.i(LOG_TAG, "Updated weather selectable keywords for filter")
                 },
                 { updatedCustomSelectedKeywords ->
-                    weatherFilterViewModel.clearSelectedWeatherFilterGroup()
+                    weatherFilterViewModel.clearCurrentWeatherFilterGroup()
                     // No delay needed here since user action should reflect immediately
                     if(updatedCustomSelectedKeywords.isEmpty() && weatherKeywordFilter.defaultSelectedKeywords.isEmpty()) {
                         weatherFilterViewModel.removeWeatherFilter(WeatherKeywordFilter::class.simpleName!!, currentWeatherFilterGroup.id)

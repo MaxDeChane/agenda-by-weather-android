@@ -17,34 +17,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.weatherbyagendaandroid.dao.repository.SelectedMenuOptionsRepository
-import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
-import com.example.weatherbyagendaandroid.presentation.model.FilterStatus
-import com.example.weatherbyagendaandroid.presentation.model.WeatherFilterViewModel
+import com.example.weatherbyagendaandroid.presentation.model.WeatherDataStateEnum
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
 @Composable
 fun GeneralWeatherDisplay(innerPadding: PaddingValues,
-                          weatherFilterViewModel: WeatherFilterViewModel = viewModel(),
                           weatherViewModel: WeatherViewModel = viewModel()) {
 
-    val weatherLoadingStatus by weatherViewModel.weatherLoadingStatus.collectAsStateWithLifecycle()
-    val filterStatus by weatherFilterViewModel.filterStatus.collectAsStateWithLifecycle()
+    val weatherLoadingStatus by weatherViewModel.weatherLoadingState.collectAsStateWithLifecycle()
     var refreshKey by remember { mutableStateOf(false) }
 
     // Run weatherPeriods through the selected filters whenever the filter status is changed
     // and in progress.
-    LaunchedEffect(filterStatus.name) {
-        if (filterStatus == FilterStatus.IN_PROGRESS && weatherLoadingStatus == LoadingStatusEnum.DONE &&
-            weatherViewModel.weatherInfo?.weatherPeriodDisplayBlocks != null) {
-            weatherFilterViewModel.runWeatherDisplayBlockThroughFilters(
-                weatherViewModel.weatherInfo!!.weatherPeriodDisplayBlocks
-            )
+    LaunchedEffect(weatherLoadingStatus.name) {
+        if (weatherLoadingStatus == WeatherDataStateEnum.REQUEST_FILTERING) {
+            weatherViewModel.runWeatherDisplayBlockThroughFilters()
             refreshKey = !refreshKey
         }
     }
 
-    if(weatherLoadingStatus == LoadingStatusEnum.LOADING) {
+    if(weatherLoadingStatus == WeatherDataStateEnum.LOADING) {
         Box(
             modifier = Modifier
                 .fillMaxSize() // take up the entire available space
@@ -55,7 +47,8 @@ fun GeneralWeatherDisplay(innerPadding: PaddingValues,
                 style = MaterialTheme.typography.displayLarge)
         }
     } else {
-        if (filterStatus == FilterStatus.IN_PROGRESS) {
+        if (weatherLoadingStatus == WeatherDataStateEnum.REQUEST_FILTERING ||
+            weatherLoadingStatus == WeatherDataStateEnum.FILTERING_IN_PROGRESS) {
             Box(
                 modifier = Modifier
                     .padding(innerPadding)

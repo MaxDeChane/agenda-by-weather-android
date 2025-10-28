@@ -33,7 +33,7 @@ fun TemperatureRangeInput(
     var lowerTempText by remember { mutableStateOf(if(temperatureRangeFilter.lowerTemperature == Int.MIN_VALUE) "" else temperatureRangeFilter.lowerTemperature.toString()) }
     var higherTempText by remember { mutableStateOf(if(temperatureRangeFilter.higherTemperature == Int.MAX_VALUE) "" else temperatureRangeFilter.higherTemperature.toString()) }
 
-    if(clear || weatherFilterViewModel.hasSelectedWeatherFilterGroup()) {
+    if(clear) {
         lowerTempText = ""
         higherTempText = ""
     }
