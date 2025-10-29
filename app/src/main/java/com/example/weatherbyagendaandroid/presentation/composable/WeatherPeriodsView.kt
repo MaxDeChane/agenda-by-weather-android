@@ -47,7 +47,15 @@ fun WeatherPeriodsView(innerPadding: PaddingValues, weatherPeriodDisplayBlocks: 
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "${generalPeriod.name}: ${generalPeriod.temperature}° ${generalPeriod.temperatureUnit}, ${generalPeriod.shortForecast}",
+                        text = generalPeriod.name,
+                        color = generalPeriod.textColor
+                    )
+                    Text(
+                        text = generalPeriod.startTime.toLocalDate().toString(),
+                        color = generalPeriod.textColor
+                    )
+                    Text(
+                        text = "${generalPeriod.temperature}° ${generalPeriod.temperatureUnit}, ${generalPeriod.shortForecast}",
                         color = generalPeriod.textColor
                     )
                     Icon(
