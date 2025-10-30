@@ -45,8 +45,9 @@ data class SavedLocations(private val _locations: MutableMap<Int, SavedLocation>
 
     fun deleteLocation(locationId: Int): SavedLocations {
         if(_locations.containsKey(locationId)) {
-            _locations.remove(locationId)
-            return this.copy(_locations = _locations)
+            val copyOfLocations = _locations.toMutableMap()
+            copyOfLocations.remove(locationId)
+            return this.copy(_locations = copyOfLocations)
         }
 
         Log.e(LOG_TAG, "Unable to find location with name $locationId")
