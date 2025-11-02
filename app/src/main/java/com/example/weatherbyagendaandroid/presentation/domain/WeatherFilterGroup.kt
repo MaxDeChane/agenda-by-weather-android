@@ -53,7 +53,7 @@ data class WeatherFilterGroup(val id: Int = -1, var name: String = "",
         return filtersByName.isNotEmpty()
     }
 
-    fun runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlock: WeatherPeriodDisplayBlock) {
+    fun runWeatherDisplayBlockThroughFilters(weatherPeriodDisplayBlock: WeatherPeriodBlock) {
         // Reset the filtered periods in block to make sure
         // they get rechecked against current filters.
         weatherPeriodDisplayBlock.resetFiltered()

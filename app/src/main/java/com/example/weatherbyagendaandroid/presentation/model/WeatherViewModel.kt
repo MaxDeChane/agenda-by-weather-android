@@ -11,7 +11,6 @@ import com.example.weatherbyagendaandroid.service.WeatherService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,13 +19,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.OffsetDateTime
 import javax.inject.Inject
-
-enum class WeatherDataStateEnum {
-    LOADING,
-    REQUEST_FILTERING,
-    FILTERING_IN_PROGRESS,
-    DONE
-}
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(@ApplicationContext private val context: Context,
@@ -38,13 +30,18 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
        val LOG_TAG = "WeatherViewModel"
    }
 
-    private val _weatherLoadingState = MutableStateFlow(WeatherDataStateEnum.LOADING)
+    // Make this a sealed class so a new instance of Done can be created
+    // to make sure it is a new instance and causes refreshes in compose.
+    sealed class WeatherDataState {
+        object Loading: WeatherDataState()
+        object FilteringInProgress: WeatherDataState()
+        class Done: WeatherDataState()
+    }
+
+    private val _weatherLoadingState = MutableStateFlow<WeatherDataState>(WeatherDataState.Loading)
     val weatherLoadingState = _weatherLoadingState.asStateFlow()
 
     var weatherInfo: WeatherInfo? = null
-
-    private var weatherUpdateJob: Job? = null
-    private var weatherFilterJob: Job? = null
 
     init{
         viewModelScope.launch {
@@ -68,38 +65,32 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
             ).collect { filterGroup ->
                 // Cancel any filtering jobs that may be already going and
                 // set status to request filtering to kick off the filtering again.
-                if (_weatherLoadingState.value != WeatherDataStateEnum.LOADING) {
-                    _weatherLoadingState.value = WeatherDataStateEnum.REQUEST_FILTERING
+                if (weatherInfo != null) {
+                    runWeatherDisplayBlockThroughFilters()
                 }
             }
         }
     }
 
     fun updateWeatherInfoUsingCurrentLocation() {
-        viewModelScope.launch {
-            locationHelper.retrieveCurrentLocation({ location ->
+        locationHelper.retrieveCurrentLocation({ location ->
+            viewModelScope.launch {
                 updateWeatherInfo(location.latitude, location.longitude)
-            }) {
-                // Reload activity. This will kick off the prompting for access.
-                (context as Activity).recreate()
             }
+        }) {
+            // Reload activity. This will kick off the prompting for access.
+            (context as Activity).recreate()
         }
     }
 
-    fun updateWeatherInfo(latitude: Double, longitude: Double): Job {
-        // Cancel any existing Jobs here since we don't want it to say it is done when it is
-        // actually reloading.
-        weatherUpdateJob?.cancel()
-
+    suspend fun updateWeatherInfo(latitude: Double, longitude: Double) {
         // Set the loading status to loading. This is done after the cancel job to make sure
         // there isn't any race conditions.
-        _weatherLoadingState.value = WeatherDataStateEnum.LOADING
-        weatherUpdateJob = viewModelScope.launch(Dispatchers.Default) {
+        _weatherLoadingState.value = WeatherDataState.Loading
+        withContext(Dispatchers.Default) {
             weatherInfo = weatherService.updateWeatherInfo(latitude, longitude,weatherInfo)
-            _weatherLoadingState.value = WeatherDataStateEnum.REQUEST_FILTERING
         }
-
-        return weatherUpdateJob!!
+        runWeatherDisplayBlockThroughFilters()
     }
 
     fun retrieveLastGeneralWeatherPeriodEndDate(): OffsetDateTime? {
@@ -113,11 +104,12 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
             else
                 selectedMenuOptionsRepository.currentWeatherFilterGroup.value
 
-        weatherFilterJob?.cancel()
+        // Switch to main to update the state value
+        withContext(Dispatchers.Main) {
+            _weatherLoadingState.value = WeatherDataState.FilteringInProgress
+        }
 
-        _weatherLoadingState.value = WeatherDataStateEnum.FILTERING_IN_PROGRESS
-
-        weatherFilterJob = viewModelScope.launch(Dispatchers.Default) {
+        withContext(Dispatchers.Default) {
             // Add scope here to make sure all the child coroutines finish before we continue.
             coroutineScope {
                 for (weatherPeriodDisplayBlock in weatherInfo!!.weatherPeriodDisplayBlocks) {
@@ -128,8 +120,11 @@ class WeatherViewModel @Inject constructor(@ApplicationContext private val conte
                     }
                 }
             }
+        }
 
-            _weatherLoadingState.value = WeatherDataStateEnum.DONE
+        // Switch to main to update the state value
+        withContext(Dispatchers.Main) {
+            _weatherLoadingState.value = WeatherDataState.Done()
         }
     }
 }

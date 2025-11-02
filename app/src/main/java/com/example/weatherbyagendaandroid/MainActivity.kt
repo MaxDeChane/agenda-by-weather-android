@@ -21,7 +21,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.helpers.LocationHelper
 import com.example.weatherbyagendaandroid.notification.createFromChannelId
-import com.example.weatherbyagendaandroid.presentation.composable.AgendaItemWeatherPeriodsView
 import com.example.weatherbyagendaandroid.presentation.composable.GeneralWeatherDisplay
 import com.example.weatherbyagendaandroid.presentation.composable.UpdateSettingsPermissionRequestView
 import com.example.weatherbyagendaandroid.presentation.composable.UpdateUserPermissionRequestView
@@ -49,6 +48,10 @@ fun WeatherScreen(agendaItemId: Int, menuViewModel: MenuViewModel = viewModel(),
                   permissionsViewModel: PermissionsViewModel = viewModel()) {
     val locationPermissionStatus by permissionsViewModel.systemLocationGranted.collectAsStateWithLifecycle()
 
+    if(agendaItemId != -1) {
+        menuViewModel.loadMenuSelectionsFromAgendaItemId(agendaItemId)
+    }
+
     when (locationPermissionStatus) {
         LocationHelper.LocationPermissionStatus.PermissionCheckInProgress -> Text("Loading")
         LocationHelper.LocationPermissionStatus.AllPermissionsGranted -> {
@@ -60,12 +63,7 @@ fun WeatherScreen(agendaItemId: Int, menuViewModel: MenuViewModel = viewModel(),
                     val showMenu by menuViewModel.showMenu.collectAsState()
 
                     Box(Modifier.fillMaxSize()) {
-
-                        if(agendaItemId == -1) {
-                            GeneralWeatherDisplay(innerPadding)
-                        } else {
-                            AgendaItemWeatherPeriodsView(innerPadding, agendaItemId)
-                        }
+                        GeneralWeatherDisplay(innerPadding)
 
                         if (showMenu) {
                             MenuView(innerPadding)

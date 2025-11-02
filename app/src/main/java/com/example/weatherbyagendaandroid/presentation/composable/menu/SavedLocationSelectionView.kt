@@ -99,6 +99,8 @@ fun SavedLocationSelectionView(currentSavedLocationId: Int, isEditable: Boolean 
                                         style = MaterialTheme.typography.bodyLarge,
                                         modifier = Modifier.padding(horizontal = 8.dp).clickable {
                                             locationViewModel.updateLocationName(locationId, newLocationName)
+                                            newLocationName = ""
+                                            locationUnderEditName = null
                                         }
                                     )
                                 }

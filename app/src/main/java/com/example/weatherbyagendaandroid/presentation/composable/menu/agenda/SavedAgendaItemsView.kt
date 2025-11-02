@@ -33,6 +33,7 @@ fun SavedAgendaItemsView(agendaViewModel: AgendaViewModel = viewModel()
     var expandedAgendaItems by remember { mutableStateOf(AgendaItems()) }
     var inEditAgendaItem by remember { mutableStateOf<AgendaItem?>(null) }
 
+    val selectedAgendaItem by agendaViewModel.selectedAgendaItem.collectAsStateWithLifecycle()
     val agendaItems by agendaViewModel.agendaItems.collectAsStateWithLifecycle()
 
     fun expandAgendaItemInfo(agendaItem: AgendaItem) {
@@ -59,17 +60,17 @@ fun SavedAgendaItemsView(agendaViewModel: AgendaViewModel = viewModel()
                                 expandAgendaItemInfo(agendaItem)
                             }
                     ) {
-//                        RadioButton(
-//                            selected = currentSavedLocationId == id,
-//                            onClick = { selectLocation(id) },
-//                            colors = RadioButtonDefaults.colors(
-//                                selectedColor = MaterialTheme.colorScheme.primary
-//                            )
-//                        )
-//                        Text(
-//                            text = agendaItem.name,
-//                            style = MaterialTheme.typography.bodyLarge
-//                        )
+                        RadioButton(
+                            selected = selectedAgendaItem?.id == id,
+                            onClick = { agendaViewModel.selectAgendaItem(agendaItem) },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        Text(
+                            text = agendaItem.name,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
                     Row(
                         horizontalArrangement = Arrangement.End,

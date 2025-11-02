@@ -27,17 +27,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherbyagendaandroid.R
-import com.example.weatherbyagendaandroid.presentation.domain.WeatherPeriodDisplayBlock
+import com.example.weatherbyagendaandroid.presentation.domain.WeatherPeriodBlock
+import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
 @Composable
-fun WeatherPeriodsView(innerPadding: PaddingValues, weatherPeriodDisplayBlocks: List<WeatherPeriodDisplayBlock>,
-                       refreshKey: Boolean) {
+fun WeatherPeriodsView(innerPadding: PaddingValues, weatherPeriodDisplayBlocks: List<WeatherPeriodBlock>,
+                       weatherLoadingStatus: WeatherViewModel.WeatherDataState) {
     val LOG_TAG = remember { "WeatherPeriodsView" }
 
     LazyColumn (
         Modifier
             .padding(innerPadding)) {
-        items(weatherPeriodDisplayBlocks, { "${it.generalWeatherPeriod.startTime}-$refreshKey" }) { weatherPeriodDisplayBlock ->
+        items(weatherPeriodDisplayBlocks, { "${it.generalWeatherPeriod.startTime}-$weatherLoadingStatus" }) { weatherPeriodDisplayBlock ->
             val generalPeriod = weatherPeriodDisplayBlock.generalWeatherPeriod
             if (!weatherPeriodDisplayBlock.isWholeBlockFiltered) {
                 Column(
@@ -74,7 +75,7 @@ fun WeatherPeriodsView(innerPadding: PaddingValues, weatherPeriodDisplayBlocks: 
                         .height(175.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    items(weatherPeriodDisplayBlock.hourlyWeatherPeriods, { "${it.startTime}-$refreshKey" }) {currentHourlyPeriod ->
+                    items(weatherPeriodDisplayBlock.hourlyWeatherPeriods, { "${it.startTime}-$weatherLoadingStatus" }) {currentHourlyPeriod ->
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()

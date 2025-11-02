@@ -10,7 +10,7 @@ import com.example.weatherbyagendaandroid.dao.domain.GridPointProperties
 import com.example.weatherbyagendaandroid.dao.domain.WeatherPeriod
 import com.example.weatherbyagendaandroid.dao.domain.WeatherProperties
 import com.example.weatherbyagendaandroid.domain.weather.WeatherInfo
-import com.example.weatherbyagendaandroid.presentation.domain.WeatherPeriodDisplayBlock
+import com.example.weatherbyagendaandroid.presentation.domain.WeatherPeriodBlock
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel.Companion.LOG_TAG
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -66,7 +66,7 @@ class WeatherService @Inject constructor(private val weatherRepository: WeatherR
             val relativeLocation = gridPointProperties.relativeLocation.properties
             val cityStateForDisplay = "${relativeLocation.city}, ${relativeLocation.state}"
 
-            var weatherPeriodDisplayBlocks = emptyList<WeatherPeriodDisplayBlock>()
+            var weatherPeriodDisplayBlocks = emptyList<WeatherPeriodBlock>()
             if(updatedGeneralForecast != null && updatedHourlyForecast != null) {
                 weatherPeriodDisplayBlocks =
                     groupWeatherPeriodsInBlocks(updatedGeneralForecast!!.periods, updatedHourlyForecast!!.periods)
@@ -207,8 +207,8 @@ class WeatherService @Inject constructor(private val weatherRepository: WeatherR
         return null
     }
 
-    private fun groupWeatherPeriodsInBlocks(generalPeriods: List<WeatherPeriod>, hourlyPeriods: List<WeatherPeriod>): List<WeatherPeriodDisplayBlock> {
-        val blocks = mutableListOf<WeatherPeriodDisplayBlock>()
+    private fun groupWeatherPeriodsInBlocks(generalPeriods: List<WeatherPeriod>, hourlyPeriods: List<WeatherPeriod>): List<WeatherPeriodBlock> {
+        val blocks = mutableListOf<WeatherPeriodBlock>()
         var currentBlockEndTime: OffsetDateTime
         var currentHourlyPeriodIndex = 0
 
@@ -223,7 +223,7 @@ class WeatherService @Inject constructor(private val weatherRepository: WeatherR
                     if (currentHourlyPeriod.startTime < currentBlockEndTime) {
                         blockHourlyPeriods.add(currentHourlyPeriod)
                     } else {
-                        blocks.add(WeatherPeriodDisplayBlock(generalPeriod, blockHourlyPeriods))
+                        blocks.add(WeatherPeriodBlock(generalPeriod, blockHourlyPeriods))
                         currentHourlyPeriodIndex = j
                         break
                     }

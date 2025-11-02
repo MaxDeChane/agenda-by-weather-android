@@ -1,5 +1,6 @@
 package com.example.weatherbyagendaandroid.dao.repository
 
+import com.example.weatherbyagendaandroid.domain.agenda.AgendaItem
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroup
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +26,10 @@ class SelectedMenuOptionsRepository @Inject constructor() {
     private val _currentWeatherFilterGroup = MutableStateFlow(WeatherFilterGroup())
     val currentWeatherFilterGroup = _currentWeatherFilterGroup.asStateFlow()
 
+    // Used to update what location to get the weather info from.
+    private val _selectedAgendaItem = MutableStateFlow<AgendaItem?>(null)
+    val selectedAgendaItem = _selectedAgendaItem.asStateFlow()
+
     fun setSelectedLocationLatLon(locationLatLong: LocationLatLon) {
         _selectedLocationLatLon.value = locationLatLong
     }
@@ -35,5 +40,9 @@ class SelectedMenuOptionsRepository @Inject constructor() {
 
     fun setCurrentWeatherFilterGroup(weatherFilterGroup: WeatherFilterGroup) {
         _currentWeatherFilterGroup.value = weatherFilterGroup
+    }
+
+    fun setSelectedAgendaItem(agendaItem: AgendaItem?) {
+        _selectedAgendaItem.value = agendaItem
     }
 }

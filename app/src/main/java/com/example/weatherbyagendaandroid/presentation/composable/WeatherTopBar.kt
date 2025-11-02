@@ -34,7 +34,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherbyagendaandroid.MapActivity
 import com.example.weatherbyagendaandroid.R
 import com.example.weatherbyagendaandroid.presentation.model.MenuViewModel
-import com.example.weatherbyagendaandroid.presentation.model.WeatherDataStateEnum
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +53,7 @@ fun WeatherTopBar(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if(weatherLoadingStatus == WeatherDataStateEnum.LOADING) {
+                if(weatherLoadingStatus == WeatherViewModel.WeatherDataState.Loading) {
                     Text(
                         text = "Loading",
                         style = MaterialTheme.typography.titleMedium,

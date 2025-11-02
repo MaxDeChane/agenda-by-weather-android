@@ -19,13 +19,11 @@ fun CreateNewWeatherFilterGroupView(menuViewModel: MenuViewModel = viewModel(), 
     val showWeatherFilterGroupsExpanded by menuViewModel.showWeatherFilterGroupsExpanded.collectAsStateWithLifecycle()
 
     fun handleSave(filterGroupName: String) {
-        val savedFilterGroupId = weatherFilterViewModel.saveNewWeatherFilterGroup(filterGroupName)
+        weatherFilterViewModel.saveNewWeatherFilterGroup(filterGroupName)
         menuViewModel.showWeatherFiltersClick()
         if(!showWeatherFilterGroupsExpanded) {
             menuViewModel.showWeatherFilterGroupsExpansionClick()
         }
-
-        weatherFilterViewModel.selectWeatherFilterGroup(savedFilterGroupId)
     }
 
     WeatherFilterGroupInputView(inCreationFilterGroup, false, {}, { showNameFilterGroupAlertView = true })

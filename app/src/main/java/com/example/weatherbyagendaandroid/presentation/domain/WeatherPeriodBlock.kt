@@ -2,10 +2,10 @@ package com.example.weatherbyagendaandroid.presentation.domain
 
 import com.example.weatherbyagendaandroid.dao.domain.WeatherPeriod
 
-data class WeatherPeriodDisplayBlock(val generalWeatherPeriod: WeatherPeriod,
+data class WeatherPeriodBlock(val generalWeatherPeriod: WeatherPeriod,
                               val hourlyWeatherPeriods: List<WeatherPeriod> = mutableListOf(),
-    var isWholeBlockFiltered:Boolean = false,
-    var isPartialBlockFiltered:Boolean = false,
+                              var isWholeBlockFiltered:Boolean = false,
+                              var isPartialBlockFiltered:Boolean = false,
 ) {
 
     fun resetFiltered() {

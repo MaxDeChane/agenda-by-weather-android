@@ -4,12 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherbyagendaandroid.config.CityDatabase
-import com.example.weatherbyagendaandroid.dao.SavedLocationsDao
 import com.example.weatherbyagendaandroid.dao.entites.City
+import com.example.weatherbyagendaandroid.dao.repository.MenuOptionsRepository
 import com.example.weatherbyagendaandroid.dao.repository.SelectedMenuOptionsRepository
 import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
 import com.example.weatherbyagendaandroid.presentation.domain.SavedLocation
-import com.example.weatherbyagendaandroid.presentation.domain.SavedLocations
 import com.google.android.gms.common.util.CollectionUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,12 +21,12 @@ import javax.inject.Inject
 class LocationViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val cityDatabase: CityDatabase,
-    private val savedLocationsDao: SavedLocationsDao,
+    private val menuOptionsRepository: MenuOptionsRepository,
     private val selectedMenuOptionsRepository: SelectedMenuOptionsRepository
 ): ViewModel() {
 
-    private val _loadingStatus = MutableStateFlow(LoadingStatusEnum.LOADING)
-    val loadingStatus = _loadingStatus.asStateFlow()
+    val loadingStatus = menuOptionsRepository.savedLocationsLoadingStatus
+    val savedLocations = menuOptionsRepository.savedLocations
 
     private val _selectedSavedLocation = MutableStateFlow<SavedLocation?>(null)
     val selectedSavedLocation = _selectedSavedLocation.asStateFlow()
@@ -35,19 +34,11 @@ class LocationViewModel @Inject constructor(
     private val _cityOptions = MutableStateFlow<List<City>>(listOf())
     val cityOptions = _cityOptions.asStateFlow()
 
-    private val _savedLocations = MutableStateFlow(SavedLocations())
-    val savedLocations = _savedLocations.asStateFlow()
-
     init {
         viewModelScope.launch {
-            val loadedLocations =
-                savedLocationsDao.retrieveLocations(context)
-
-            if(loadedLocations != null && loadedLocations.hasSaveLocations()) {
-                _savedLocations.value = loadedLocations
+            if(loadingStatus.value != LoadingStatusEnum.DONE) {
+                menuOptionsRepository.loadSavedLocations(context)
             }
-
-            _loadingStatus.value = LoadingStatusEnum.DONE
         }
     }
 
@@ -92,28 +83,25 @@ class LocationViewModel @Inject constructor(
     }
 
     fun addSavedLocation(location: SavedLocation) {
-        val savedLocation = savedLocations.value.addLocation(location)
-        _savedLocations.value = _savedLocations.value.copy(_locations = _savedLocations.value.locations.toMutableMap())
-        selectLocation(savedLocation.id)
-        _cityOptions.value = listOf()
-
         viewModelScope.launch {
-            savedLocationsDao.saveLocations(context, _savedLocations.value)
+            val savedLocation = menuOptionsRepository.addSavedLocation(location, context)
+            selectLocation(savedLocation.id)
+            _cityOptions.value = listOf()
         }
     }
 
     fun deleteSavedLocation(locationId: Int) {
-        _savedLocations.value = savedLocations.value.deleteLocation(locationId)
-        if(_selectedSavedLocation.value?.id == locationId) {
-            selectLocation(locationId)
-        }
-
         viewModelScope.launch {
-            savedLocationsDao.saveLocations(context, _savedLocations.value)
+            menuOptionsRepository.deleteSavedLocation(locationId, context)
+            if (_selectedSavedLocation.value?.id == locationId) {
+                selectLocation(locationId)
+            }
         }
     }
 
     fun updateLocationName(locationId: Int, newLocationName: String) {
-        _savedLocations.value = savedLocations.value.updateLocationName(locationId, newLocationName)
+        viewModelScope.launch {
+            menuOptionsRepository.updateLocationName(locationId, newLocationName, context)
+        }
     }
 }

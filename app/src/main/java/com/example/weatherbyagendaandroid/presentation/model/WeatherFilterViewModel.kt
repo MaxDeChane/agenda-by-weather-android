@@ -4,13 +4,11 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.weatherbyagendaandroid.dao.WeatherFilterGroupsDao
+import com.example.weatherbyagendaandroid.dao.repository.MenuOptionsRepository
 import com.example.weatherbyagendaandroid.dao.repository.SelectedMenuOptionsRepository
-import com.example.weatherbyagendaandroid.enums.LoadingStatusEnum
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilter
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroup
 import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroupEditHolder
-import com.example.weatherbyagendaandroid.presentation.domain.WeatherFilterGroups
 import com.example.weatherbyagendaandroid.presentation.model.WeatherViewModel.Companion.LOG_TAG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,30 +20,21 @@ import javax.inject.Inject
 @HiltViewModel
 class WeatherFilterViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val weatherFilterGroupsDao: WeatherFilterGroupsDao,
+    private val menuOptionsRepository: MenuOptionsRepository,
     private val selectedMenuOptionsRepository: SelectedMenuOptionsRepository): ViewModel() {
-
-    private val _loadingStatus = MutableStateFlow(LoadingStatusEnum.LOADING)
-    val loadingStatus = _loadingStatus.asStateFlow()
-
-    private val _weatherFilterGroups = MutableStateFlow(WeatherFilterGroups())
-    val weatherFilterGroups = _weatherFilterGroups.asStateFlow()
-
-    private val _inEditFilterGroupHolders = MutableStateFlow<Map<Int, WeatherFilterGroupEditHolder>>(mapOf())
-    val inEditFilterGroupHolders = _inEditFilterGroupHolders.asStateFlow()
 
     val currentWeatherFilterGroup = selectedMenuOptionsRepository.currentWeatherFilterGroup
     val adhocWeatherFilterGroup = selectedMenuOptionsRepository.adhocFilterGroup
 
+    val loadingStatus = menuOptionsRepository.weatherFilterGroupsLoadingStatus
+    val weatherFilterGroups = menuOptionsRepository.weatherFilterGroups
+
+    private val _inEditFilterGroupHolders = MutableStateFlow<Map<Int, WeatherFilterGroupEditHolder>>(mapOf())
+    val inEditFilterGroupHolders = _inEditFilterGroupHolders.asStateFlow()
+
     init {
         viewModelScope.launch {
-            val loadedWeatherFilterGroups = weatherFilterGroupsDao.retrieveWeatherFilterGroups(context)
-
-            if(loadedWeatherFilterGroups != null && loadedWeatherFilterGroups.filterGroups.isNotEmpty()) {
-                _weatherFilterGroups.value = loadedWeatherFilterGroups
-            }
-
-            _loadingStatus.value = LoadingStatusEnum.DONE
+            menuOptionsRepository.loadWeatherFilterGroups(context)
         }
     }
 
@@ -60,19 +49,17 @@ class WeatherFilterViewModel @Inject constructor(
         }
     }
 
-    // The saving is done by taking the filter in creation and moving it to the
+    // The saving is done by taking the adhoc filter and moving it to the
     // collection of all weather filter groups. Returns the Id of the new weather
     // filter group.
-    fun saveNewWeatherFilterGroup(filterGroupName: String): Int {
-        val updateWeatherFilterGroups = weatherFilterGroups.value.saveNewWeatherFilterGroup(filterGroupName, adhocWeatherFilterGroup.value)
-        _weatherFilterGroups.value = updateWeatherFilterGroups
-        selectedMenuOptionsRepository.setAdhocWeatherFilterGroup(WeatherFilterGroup())
-
+    fun saveNewWeatherFilterGroup(filterGroupName: String) {
         viewModelScope.launch {
-            weatherFilterGroupsDao.saveWeatherFilterGroups(context, updateWeatherFilterGroups)
-        }
+            val savedWeatherFilterGroupId = menuOptionsRepository.saveNewWeatherFilterGroup(
+                filterGroupName, adhocWeatherFilterGroup.value, context)
 
-        return updateWeatherFilterGroups.filterGroups.values.first { it.name == filterGroupName }.id
+            selectWeatherFilterGroup(savedWeatherFilterGroupId)
+        }
+        selectedMenuOptionsRepository.setAdhocWeatherFilterGroup(WeatherFilterGroup())
     }
 
     // Call this before editing. It will move things into the right properties
@@ -104,24 +91,20 @@ class WeatherFilterViewModel @Inject constructor(
         val inEditFilterGroupHolderCopy = inEditFilterGroupHolders.value.toMutableMap()
         val updatedFilterGroup = inEditFilterGroupHolderCopy.remove(filterGroupId)!!.weatherFilterGroupToEdit
 
-        val updatedFilterGroups = weatherFilterGroups.value.updateWeatherFilterGroup(filterGroupId, updatedFilterGroup)
-
-        _weatherFilterGroups.value = updatedFilterGroups
-        _inEditFilterGroupHolders.value = inEditFilterGroupHolderCopy.toMap()
-
         viewModelScope.launch {
-            weatherFilterGroupsDao.saveWeatherFilterGroups(context, updatedFilterGroups)
+            menuOptionsRepository.updateWeatherFilterGroup(filterGroupId, updatedFilterGroup, context)
         }
+
+        _inEditFilterGroupHolders.value = inEditFilterGroupHolderCopy.toMap()
     }
 
     fun deleteWeatherFilterGroup(locationId: Int) {
-        _weatherFilterGroups.value = weatherFilterGroups.value.deleteWeatherFilterGroup(locationId)
-        if(currentWeatherFilterGroup.value.id == locationId) {
-            selectedMenuOptionsRepository.setCurrentWeatherFilterGroup(WeatherFilterGroup())
+        viewModelScope.launch {
+            menuOptionsRepository.deleteWeatherFilterGroup(locationId, context)
         }
 
-        viewModelScope.launch {
-            weatherFilterGroupsDao.saveWeatherFilterGroups(context, _weatherFilterGroups.value)
+        if(currentWeatherFilterGroup.value.id == locationId) {
+            selectedMenuOptionsRepository.setCurrentWeatherFilterGroup(WeatherFilterGroup())
         }
     }
 

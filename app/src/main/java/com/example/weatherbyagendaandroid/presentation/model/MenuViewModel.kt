@@ -1,14 +1,20 @@
 package com.example.weatherbyagendaandroid.presentation.model
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.weatherbyagendaandroid.dao.repository.MenuOptionsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MenuViewModel @Inject constructor(): ViewModel() {
+class MenuViewModel @Inject constructor(@ApplicationContext private val context: Context,
+                                        private val menuOptionsRepository: MenuOptionsRepository): ViewModel() {
     private val _logTag = "MenuViewModel"
 
     private val _showMenu =  MutableStateFlow(false)
@@ -48,5 +54,11 @@ class MenuViewModel @Inject constructor(): ViewModel() {
     fun showUpdateLocationExpansionClick() {
         _showUpdateLocationExpanded.value = !showUpdateLocationExpanded.value
         Log.i(_logTag, "Menu button has been clicked and show menu is now ${_showUpdateLocationExpanded.value}")
+    }
+
+    fun loadMenuSelectionsFromAgendaItemId(agendaItemId: Int) {
+        viewModelScope.launch {
+            menuOptionsRepository.loadMenuSelectionsFromAgendaItemId(agendaItemId, context)
+        }
     }
 }
